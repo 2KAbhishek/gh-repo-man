@@ -48,19 +48,50 @@ gh repo-manager --user "torvalds"
 
 In the interactive UI, you can select multiple repositories to clone. Once you've made your selection, press `Enter` to clone them to your local machine.
 
+## Development
+
+### Building from source
+
+1.  Clone the repository:
+
+    ```sh
+    git clone https://github.com/2KAbhishek/gh-repo-manager.git
+    cd gh-repo-manager
+    ```
+
+2.  Build the executable:
+
+    ```sh
+    go build -o gh-repo-manager main.go
+    ```
+
+3.  Install the extension locally:
+
+    ```sh
+    gh extension install .
+    ```
+
+### Running Tests
+
+To run all tests:
+
+```sh
+go test ./...
+```
+
 ## Todos
 
-*   [ ] Initialize Go module.
-*   [ ] Set up the basic project structure.
-*   [ ] Implement the `gh repo-manager` command.
-*   [ ] Fetch and display a user's repositories.
-*   [ ] Implement the interactive UI for browsing repositories.
-*   [ ] Add tests for fetching repositories.
-*   [ ] Implement the multi-clone functionality.
-*   [ ] Add tests for the cloning logic.
-*   [ ] Implement the `--user` flag to browse another user's repositories.
-*   [ ] Add tests for the `--user` flag.
-*   [ ] Refine the UI and add more repository details.
-*   [ ] Add error handling for API requests and cloning errors.
-*   [ ] Write comprehensive documentation.
-*   [ ] Create a release workflow.
+*   [x] Initialize Go module.
+*   [x] Set up the basic project structure.
+*   [x] Implement the `gh repo-manager` command.
+*   [x] Fetch and display a user's repositories.
+*   [x] Implement the interactive UI for browsing repositories.
+*   [x] Add tests for fetching repositories.
+*   [x] Implement the multi-clone functionality.
+*   [x] Add tests for the cloning logic.
+*   [x] Implement the `--user` flag to browse another user's repositories.
+*   [x] Add tests for the `--user` flag.
+*   [x] Refine the UI and add more repository details.
+*   [x] Add error handling for API requests and cloning errors.
+*   [x] Write comprehensive documentation.
+*   [x] Create a release workflow.

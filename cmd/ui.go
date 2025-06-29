@@ -4,6 +4,13 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+var ( // Styles
+	selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
+	descriptionStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true)
+	countStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 )
 
 type model struct {
@@ -80,7 +87,16 @@ func (m model) View() string {
 			checked = "x"
 		}
 
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, repo.Name)
+		repoLine := fmt.Sprintf("%s [%s] %s", cursor, checked, repo.Name)
+		if m.cursor == i {
+			repoLine = selectedItemStyle.Render(repoLine)
+		}
+		s += repoLine + "\n"
+
+		if repo.Description != "" {
+			s += fmt.Sprintf("  %s\n", descriptionStyle.Render(repo.Description))
+		}
+		s += fmt.Sprintf("  %s⭐ %d  🍴 %d\n", countStyle.Render(""), repo.StargazerCount, repo.ForkCount)
 	}
 
 	s += "\nPress enter to clone selected repositories, or q to quit.\n"

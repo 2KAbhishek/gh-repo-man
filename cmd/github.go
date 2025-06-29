@@ -10,6 +10,8 @@ type Repo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Ssh_url     string `json:"sshUrl"`
+	StargazerCount int `json:"stargazerCount"`
+	ForkCount      int `json:"forkCount"`
 }
 
 var execCommand = exec.Command
@@ -17,20 +19,23 @@ var execCommand = exec.Command
 func GetRepos(user string) ([]Repo, error) {
 	var cmd *exec.Cmd
 	if user == "" {
-		cmd = execCommand("gh", "repo", "list", "--json", "name,description,sshUrl")
+		cmd = execCommand("gh", "repo", "list", "--json", "name,description,sshUrl,stargazerCount,forkCount")
 	} else {
-		cmd = execCommand("gh", "repo", "list", user, "--json", "name,description,sshUrl")
+		cmd = execCommand("gh", "repo", "list", user, "--json", "name,description,sshUrl,stargazerCount,forkCount")
 	}
 
 	out, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return nil, fmt.Errorf("gh command failed: %s", string(exitError.Stderr))
+		}
+		return nil, fmt.Errorf("failed to execute gh command: %w", err)
 	}
 
 	var repos []Repo
 	err = json.Unmarshal(out, &repos)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal gh output: %w", err)
 	}
 
 	return repos, nil
@@ -44,6 +49,9 @@ func CloneRepos(repos []Repo) error {
 		cmd.Stderr = nil
 		err := cmd.Run()
 		if err != nil {
+			if exitError, ok := err.(*exec.ExitError); ok {
+				return fmt.Errorf("failed to clone %s: %s", repo.Name, string(exitError.Stderr))
+			}
 			return fmt.Errorf("failed to clone %s: %w", repo.Name, err)
 		}
 		fmt.Printf("Successfully cloned %s\n", repo.Name)
