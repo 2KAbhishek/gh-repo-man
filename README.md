@@ -1,112 +1,66 @@
-<div align = "center">
+# gh repo-manager
 
-<h1><a href="https://github.com/2kabhishek/gh-repo-manager">gh-repo-manager</a></h1>
+A `gh` CLI extension to manage your GitHub repositories. Browse, clone, and manage your repos with ease.
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/blob/main/LICENSE">
-<img alt="License" src="https://img.shields.io/github/license/2kabhishek/gh-repo-manager?style=flat&color=eee&label="> </a>
+## Features
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/graphs/contributors">
-<img alt="People" src="https://img.shields.io/github/contributors/2kabhishek/gh-repo-manager?style=flat&color=ffaaf2&label=People"> </a>
+*   **Interactive UI:** A terminal-based UI to browse your repositories.
+*   **Multi-clone:** Clone multiple repositories at once.
+*   **Browse User Repos:** Browse the public repositories of any user on GitHub.
+*   **Repository Details:** View details of a repository, including its description, stars, and forks.
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/stargazers">
-<img alt="Stars" src="https://img.shields.io/github/stars/2kabhishek/gh-repo-manager?style=flat&color=98c379&label=Stars"></a>
+## Installation
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/network/members">
-<img alt="Forks" src="https://img.shields.io/github/forks/2kabhishek/gh-repo-manager?style=flat&color=66a8e0&label=Forks"> </a>
+1.  Install the `gh` CLI. See the official [installation guide](https://github.com/cli/cli#installation).
+2.  Install the extension:
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/watchers">
-<img alt="Watches" src="https://img.shields.io/github/watchers/2kabhishek/gh-repo-manager?style=flat&color=f5d08b&label=Watches"> </a>
+    ```sh
+    gh extension install 2KAbhishek/gh-repo-manager
+    ```
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/pulse">
-<img alt="Last Updated" src="https://img.shields.io/github/last-commit/2kabhishek/gh-repo-manager?style=flat&color=e06c75&label="> </a>
+## Usage
 
-<h3>Short Sweet Headline 🎇🎉</h3>
+### Browse Your Repositories
 
-<figure>
-  <img src="docs/images/screenshot.png" alt="gh-repo-manager in action">
-  <br/>
-  <figcaption>gh-repo-manager in action</figcaption>
-</figure>
+To browse your own repositories, simply run:
 
-</div>
-
-gh-repo-manager is a `<utility/tool>` that allows `<target_audience>` to `<action>`.
-
-## ✨ Features
-
-- Comes with a ready to go README template
-- Works with [mkrepo](https://github.com/2kabhishek/mkrepo)
-
-## ⚡ Setup
-
-### ⚙️ Requirements
-
-- foo >= bar
-- bazz
-
-### 💻 Installation
-
-Installing gh-repo-manager is as simple as cloning and symlinking!
-
-```bash
-git clone https://github.com/2kabhishek/gh-repo-manager
-cd gh-repo-manager
-<install_command>
+```sh
+gh repo-manager
 ```
 
-## 🚀 Usage
+This will open an interactive terminal UI where you can browse your repositories, view their details, and select them for cloning.
 
-```bash
-USAGE:
-    gh-repo-manager [FLAGS] [OPTIONS]
-Example:
-    gh-repo-manager
+### Browse Another User's Repositories
+
+To browse the public repositories of another user, use the `--user` flag:
+
+```sh
+gh repo-manager --user <username>
 ```
 
-## 🏗️ What's Next
+For example:
 
-Planning to add `<feature/module>`.
+```sh
+gh repo-manager --user "torvalds"
+```
 
-### ✅ To-Do
+### Clone Repositories
 
-- [x] Setup repo
-- [ ] Think real hard
-- [ ] Start typing
+In the interactive UI, you can select multiple repositories to clone. Once you've made your selection, press `Enter` to clone them to your local machine.
 
-## 🧑‍💻 Behind The Code
+## Todos
 
-### 🌈 Inspiration
-
-gh-repo-manager was inspired by `<reason/idea>`.
-
-### 💡 Challenges/Learnings
-
-- The main challenges were `<issue/difficulty>`
-- I learned about `<learning/accomplishment>`
-
-### 🧰 Tooling
-
-- [dots2k](https://github.com/2kabhishek/dots2k) — Dev Environment
-- [nvim2k](https://github.com/2kabhishek/nvim2k) — Personalized Editor
-- [sway2k](https://github.com/2kabhishek/sway2k) — Desktop Environment
-- [qute2k](https://github.com/2kabhishek/qute2k) — Personalized Browser
-
-### 🔍 More Info
-
-- [shelly](https://github.com/2kabhishek/shelly) — Command line template
-- [tiny-web](https://github.com/2kabhishek/tiny-web) — Web app template
-
-<hr>
-
-<div align="center">
-
-<strong>⭐ hit the star button if you found this useful ⭐</strong><br>
-
-<a href="https://github.com/2KAbhishek/gh-repo-manager">Source</a>
-| <a href="https://2kabhishek.github.io/blog" target="_blank">Blog </a>
-| <a href="https://twitter.com/2kabhishek" target="_blank">Twitter </a>
-| <a href="https://linkedin.com/in/2kabhishek" target="_blank">LinkedIn </a>
-| <a href="https://2kabhishek.github.io/links" target="_blank">More Links </a>
-| <a href="https://2kabhishek.github.io/projects" target="_blank">Other Projects </a>
-
-</div>
+*   [ ] Initialize Go module.
+*   [ ] Set up the basic project structure.
+*   [ ] Implement the `gh repo-manager` command.
+*   [ ] Fetch and display a user's repositories.
+*   [ ] Implement the interactive UI for browsing repositories.
+*   [ ] Add tests for fetching repositories.
+*   [ ] Implement the multi-clone functionality.
+*   [ ] Add tests for the cloning logic.
+*   [ ] Implement the `--user` flag to browse another user's repositories.
+*   [ ] Add tests for the `--user` flag.
+*   [ ] Refine the UI and add more repository details.
+*   [ ] Add error handling for API requests and cloning errors.
+*   [ ] Write comprehensive documentation.
+*   [ ] Create a release workflow.
