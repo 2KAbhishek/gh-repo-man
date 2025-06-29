@@ -18,12 +18,14 @@ func TestHelperProcess(t *testing.T) {
 	// argument to see what command we're mocking.
 	if os.Args[4] == "repo" && os.Args[5] == "list" {
 		// Check if a user is provided as an argument to gh repo list
-		if len(os.Args) > 6 && os.Args[6] != "--json" {
+		// The arguments will be: gh repo list [--limit 1000] [user] --json ...
+		// So, if a user is present, it will be at os.Args[7] (after --limit 1000)
+		if os.Args[6] != "--limit" {
 			// This means a user was provided, so we can return a different set of repos
-			fmt.Fprintf(os.Stdout, `[{"name":"userRepo1","description":"userDesc1","sshUrl":"git@github.com:user/userRepo1.git"}]`)
+			fmt.Fprintf(os.Stdout, `[{"name":"userRepo1","description":"userDesc1","sshUrl":"git@github.com:user/userRepo1.git","stargazerCount":10,"forkCount":5}]`)
 		} else {
 			// No user provided, return default repos
-			fmt.Fprintf(os.Stdout, `[{"name":"repo1","description":"desc1","sshUrl":"git@github.com:user/repo1.git"},{"name":"repo2","description":"desc2","sshUrl":"git@github.com:user/repo2.git"}]`)
+			fmt.Fprintf(os.Stdout, `[{"name":"repo1","description":"desc1","sshUrl":"git@github.com:user/repo1.git","stargazerCount":100,"forkCount":50},{"name":"repo2","description":"desc2","sshUrl":"git@github.com:user/repo2.git","stargazerCount":200,"forkCount":100}]`)
 		}
 	} else if os.Args[4] == "clone" {
 		if os.Args[5] == "fail_clone_url" {
@@ -54,8 +56,8 @@ func TestGetRepos(t *testing.T) {
 	}
 
 	expectedRepos := []Repo{
-		{Name: "repo1", Description: "desc1", Ssh_url: "git@github.com:user/repo1.git"},
-		{Name: "repo2", Description: "desc2", Ssh_url: "git@github.com:user/repo2.git"},
+		{Name: "repo1", Description: "desc1", Ssh_url: "git@github.com:user/repo1.git", StargazerCount: 100, ForkCount: 50},
+		{Name: "repo2", Description: "desc2", Ssh_url: "git@github.com:user/repo2.git", StargazerCount: 200, ForkCount: 100},
 	}
 
 	if !reflect.DeepEqual(repos, expectedRepos) {
@@ -69,7 +71,7 @@ func TestGetRepos(t *testing.T) {
 	}
 
 	expectedUserRepos := []Repo{
-		{Name: "userRepo1", Description: "userDesc1", Ssh_url: "git@github.com:user/userRepo1.git"},
+		{Name: "userRepo1", Description: "userDesc1", Ssh_url: "git@github.com:user/userRepo1.git", StargazerCount: 10, ForkCount: 5},
 	}
 
 	if !reflect.DeepEqual(repos, expectedUserRepos) {

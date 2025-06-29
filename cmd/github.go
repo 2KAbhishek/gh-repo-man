@@ -19,7 +19,7 @@ var execCommand = exec.Command
 func GetRepos(user string) ([]Repo, error) {
 	var cmd *exec.Cmd
 	if user == "" {
-		cmd = execCommand("gh", "repo", "list", "--json", "name,description,sshUrl,stargazerCount,forkCount")
+		cmd = execCommand("gh", "repo", "list", "--limit", "1000", "--json", "name,description,sshUrl,stargazerCount,forkCount")
 	} else {
 		cmd = execCommand("gh", "repo", "list", user, "--json", "name,description,sshUrl,stargazerCount,forkCount")
 	}
