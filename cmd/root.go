@@ -22,7 +22,6 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Prepare repository names for fzf
 		var repoNames []string
 		for _, repo := range repos {
 			repoNames = append(repoNames, repo.Name)
@@ -78,18 +77,17 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringVarP(&user, "user", "u", "", "The user to fetch repositories for.")
 
-	// Add the preview subcommand
-	rootCmd.AddCommand(previewCmd)
+	rootCmd.AddCommand(PreviewCmd)
 }
 
-var previewCmd = &cobra.Command{
+var PreviewCmd = &cobra.Command{
 	Use:    "preview [repo-name]",
 	Short:  "Show details for a repository (used by fzf preview)",
-	Hidden: true, // Hide from help output
+	Hidden: true,
 	Args:   cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		repoName := args[0]
-		repos, err := GetRepos(user) // Re-fetch all repos to find the one by name
+		repos, err := GetRepos(user)
 		if err != nil {
 			fmt.Println("Error fetching repos for preview:", err)
 			return

@@ -14,14 +14,14 @@ type Repo struct {
 	ForkCount      int `json:"forkCount"`
 }
 
-var execCommand = exec.Command
+var ExecCommand = exec.Command
 
 func GetRepos(user string) ([]Repo, error) {
 	var cmd *exec.Cmd
 	if user == "" {
-		cmd = execCommand("gh", "repo", "list", "--limit", "1000", "--json", "name,description,sshUrl,stargazerCount,forkCount")
+		cmd = ExecCommand("gh", "repo", "list", "--limit", "1000", "--json", "name,description,sshUrl,stargazerCount,forkCount")
 	} else {
-		cmd = execCommand("gh", "repo", "list", user, "--json", "name,description,sshUrl,stargazerCount,forkCount")
+		cmd = ExecCommand("gh", "repo", "list", user, "--json", "name,description,sshUrl,stargazerCount,forkCount")
 	}
 
 	out, err := cmd.Output()
@@ -44,7 +44,7 @@ func GetRepos(user string) ([]Repo, error) {
 func CloneRepos(repos []Repo) error {
 	for _, repo := range repos {
 		fmt.Printf("Cloning %s...\n", repo.Name)
-		cmd := execCommand("git", "clone", repo.Ssh_url)
+		cmd := ExecCommand("git", "clone", repo.Ssh_url)
 		cmd.Stdout = nil
 		cmd.Stderr = nil
 		err := cmd.Run()
