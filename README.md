@@ -4,15 +4,16 @@ A `gh` CLI extension to manage your GitHub repositories. Browse, clone, and mana
 
 ## Features
 
-*   **Interactive UI:** A terminal-based UI to browse your repositories.
+*   **Interactive UI (FZF):** A terminal-based UI using `fzf` to browse your repositories with live preview.
 *   **Multi-clone:** Clone multiple repositories at once.
 *   **Browse User Repos:** Browse the public repositories of any user on GitHub.
-*   **Repository Details:** View details of a repository, including its description, stars, and forks.
+*   **Repository Details:** View details of a repository, including its description, stars, and forks in the `fzf` preview window.
 
 ## Installation
 
 1.  Install the `gh` CLI. See the official [installation guide](https://github.com/cli/cli#installation).
-2.  Install the extension:
+2.  Install `fzf`. See the official [installation guide](https://github.com/junegunn/fzf#installation).
+3.  Install the extension:
 
     ```sh
     gh extension install 2KAbhishek/gh-repo-manager
@@ -28,7 +29,7 @@ To browse your own repositories, simply run:
 gh repo-manager
 ```
 
-This will open an interactive terminal UI where you can browse your repositories, view their details, and select them for cloning.
+This will open an interactive `fzf` interface where you can browse your repositories, view their details in the preview window, and select them for cloning.
 
 ### Browse Another User's Repositories
 
@@ -46,7 +47,7 @@ gh repo-manager --user "torvalds"
 
 ### Clone Repositories
 
-In the interactive UI, you can select multiple repositories to clone. Once you've made your selection, press `Enter` to clone them to your local machine.
+In the `fzf` interface, you can select multiple repositories by pressing `Tab` or `Shift+Tab`. Once you've made your selection, press `Enter` to clone them to your local machine.
 
 ## Development
 
@@ -95,3 +96,4 @@ go test ./...
 *   [x] Add error handling for API requests and cloning errors.
 *   [x] Write comprehensive documentation.
 *   [x] Create a release workflow.
+*   [x] Integrate with fzf and show information in the fzf preview section.

@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
 
@@ -20,10 +22,48 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		p := tea.NewProgram(initialModel(repos))
-		if _, err := p.Run(); err != nil {
-			fmt.Println(err)
+		// Prepare repository names for fzf
+		var repoNames []string
+		for _, repo := range repos {
+			repoNames = append(repoNames, repo.Name)
+		}
+
+		fzfCmd := exec.Command("fzf", "--multi", "--ansi", "--preview", "gh-repo-manager preview {}")
+		fzfCmd.Stdin = strings.NewReader(strings.Join(repoNames, "\n"))
+		var out bytes.Buffer
+		fzfCmd.Stdout = &out
+		fzfCmd.Stderr = os.Stderr
+
+		err = fzfCmd.Run()
+		if err != nil {
+			fmt.Println("Error running fzf:", err)
 			os.Exit(1)
+		}
+
+		selectedNames := strings.Split(strings.TrimSpace(out.String()), "\n")
+		var selectedRepos []Repo
+		for _, name := range selectedNames {
+			if name == "" {
+				continue
+			}
+			for _, repo := range repos {
+				if repo.Name == name {
+					selectedRepos = append(selectedRepos, repo)
+					break
+				}
+			}
+		}
+
+		if len(selectedRepos) > 0 {
+			fmt.Println("Cloning selected repositories...")
+			err = CloneRepos(selectedRepos)
+			if err != nil {
+				fmt.Println("Error during cloning:", err)
+				os.Exit(1)
+			}
+			fmt.Println("Cloning complete.")
+		} else {
+			fmt.Println("No repositories selected.")
 		}
 	},
 }
@@ -37,4 +77,34 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringVarP(&user, "user", "u", "", "The user to fetch repositories for.")
+
+	// Add the preview subcommand
+	rootCmd.AddCommand(previewCmd)
+}
+
+var previewCmd = &cobra.Command{
+	Use:    "preview [repo-name]",
+	Short:  "Show details for a repository (used by fzf preview)",
+	Hidden: true, // Hide from help output
+	Args:   cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		repoName := args[0]
+		repos, err := GetRepos(user) // Re-fetch all repos to find the one by name
+		if err != nil {
+			fmt.Println("Error fetching repos for preview:", err)
+			return
+		}
+
+		for _, repo := range repos {
+			if repo.Name == repoName {
+				fmt.Printf("Name: %s\n", repo.Name)
+				fmt.Printf("Description: %s\n", repo.Description)
+				fmt.Printf("SSH URL: %s\n", repo.Ssh_url)
+				fmt.Printf("Stars: %d\n", repo.StargazerCount)
+				fmt.Printf("Forks: %d\n", repo.ForkCount)
+				return
+			}
+		}
+		fmt.Printf("Repository %s not found.\n", repoName)
+	},
 }
