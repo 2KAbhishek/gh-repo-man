@@ -27,6 +27,10 @@ func TestHelperProcess(t *testing.T) {
 			} else { // No user provided
 				fmt.Fprintf(os.Stdout, `[{"name":"repo1","description":"desc1","sshUrl":"git@github.com:user/repo1.git","stargazerCount":100,"forkCount":50},{"name":"repo2","description":"desc2","sshUrl":"git@github.com:user/repo2.git","stargazerCount":200,"forkCount":100}]`)
 			}
+		} else if os.Args[4] == "api" && os.Args[5] == "repos/repo1/readme" {
+			fmt.Fprint(os.Stdout, "# Repo1 Readme\n\nThis is the readme content for repo1.")
+		} else if os.Args[4] == "api" && os.Args[5] == "repos/userRepo1/readme" {
+			fmt.Fprint(os.Stdout, "# UserRepo1 Readme\n\nThis is the readme content for userRepo1.")
 		}
 	case "git":
 		if os.Args[4] == "clone" {
@@ -143,8 +147,31 @@ func TestFzfIntegration(t *testing.T) {
 	var buf bytes.Buffer
 	buf.ReadFrom(r)
 
-	expectedOutput := "Name: repo1\nDescription: desc1\nSSH URL: git@github.com:user/repo1.git\nStars: 100\nForks: 50\n"
+	expectedOutput := "Name: repo1\nDescription: desc1\nSSH URL: git@github.com:user/repo1.git\nStars: 100\nForks: 50\n\n---\n\n# Repo1 Readme\n\nThis is the readme content for repo1.\n"
 	if !strings.Contains(buf.String(), expectedOutput) {
 		t.Errorf("previewCmd output mismatch\nGot: %q\nWant: %q", buf.String(), expectedOutput)
+	}
+
+	// Test with a user repo
+	oldStdout = os.Stdout
+	r, w, _ = os.Pipe()
+	os.Stdout = w
+
+	// Set the user for the GetRepos call within the previewCmd
+	oldUser := cmd.User
+	cmd.User = "someuser"
+
+	cmd.PreviewCmd.Run(dummyCmd, []string{"userRepo1"})
+
+	w.Close()
+	os.Stdout = oldStdout
+	cmd.User = oldUser // Restore user
+
+	buf.Reset()
+	buf.ReadFrom(r)
+
+	expectedOutput = "Name: userRepo1\nDescription: userDesc1\nSSH URL: git@github.com:user/userRepo1.git\nStars: 10\nForks: 5\n\n---\n\n# UserRepo1 Readme\n\nThis is the readme content for userRepo1.\n"
+	if !strings.Contains(buf.String(), expectedOutput) {
+		t.Errorf("previewCmd output mismatch for user repo\nGot: %q\nWant: %q", buf.String(), expectedOutput)
 	}
 }

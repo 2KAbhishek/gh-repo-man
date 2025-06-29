@@ -58,3 +58,15 @@ func CloneRepos(repos []Repo) error {
 	}
 	return nil
 }
+
+func GetReadme(repoName string) (string, error) {
+	cmd := ExecCommand("gh", "api", fmt.Sprintf("repos/%s/readme", repoName), "-H", "Accept: application/vnd.github.v3.raw")
+	out, err := cmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return "", fmt.Errorf("gh api failed: %s", string(exitError.Stderr))
+		}
+		return "", fmt.Errorf("failed to execute gh api command: %w", err)
+	}
+	return string(out), nil
+}

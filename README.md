@@ -7,7 +7,7 @@ A `gh` CLI extension to manage your GitHub repositories. Browse, clone, and mana
 *   **Interactive UI (FZF):** A terminal-based UI using `fzf` to browse your repositories with live preview.
 *   **Multi-clone:** Clone multiple repositories at once.
 *   **Browse User Repos:** Browse the public repositories of any user on GitHub.
-*   **Repository Details:** View details of a repository, including its description, stars, and forks in the `fzf` preview window.
+*   **Repository Details:** View details of a repository, including its description, stars, forks, and `README.md` content in the `fzf` preview window.
 
 ## Installation
 
@@ -97,3 +97,4 @@ go test ./...
 *   [x] Write comprehensive documentation.
 *   [x] Create a release workflow.
 *   [x] Integrate with fzf and show information in the fzf preview section.
+*   [x] Move tests to a dedicated directory, remove any comments that are not necessary, modularize the source and test code.
