@@ -13,25 +13,25 @@ type Owner struct {
 }
 
 type Repo struct {
-	Name           string    `json:"name"`
-	Description    string    `json:"description"`
-	HTMLURL        string    `json:"url"`
-	StargazerCount int       `json:"stargazerCount"`
-	ForkCount      int       `json:"forkCount"`
-	WatchersCount  int       `json:"watchers"`
-	Issues struct {
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	HTMLURL        string `json:"url"`
+	StargazerCount int    `json:"stargazerCount"`
+	ForkCount      int    `json:"forkCount"`
+	WatchersCount  int    `json:"watchers"`
+	Issues         struct {
 		TotalCount int `json:"totalCount"`
 	} `json:"issues"`
-	Owner          Owner     `json:"owner"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-	DiskUsage      int       `json:"diskUsage"`
-	HomepageURL    string    `json:"homepageUrl"`
-	IsFork         bool      `json:"isFork"`
-	IsArchived     bool      `json:"isArchived"`
-	IsPrivate      bool      `json:"isPrivate"`
-	IsTemplate     bool      `json:"isTemplate"`
-	Topics         []string  `json:"repositoryTopics"`
+	Owner           Owner     `json:"owner"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	DiskUsage       int       `json:"diskUsage"`
+	HomepageURL     string    `json:"homepageUrl"`
+	IsFork          bool      `json:"isFork"`
+	IsArchived      bool      `json:"isArchived"`
+	IsPrivate       bool      `json:"isPrivate"`
+	IsTemplate      bool      `json:"isTemplate"`
+	Topics          []string  `json:"repositoryTopics"`
 	PrimaryLanguage struct {
 		Name string `json:"name"`
 	} `json:"primaryLanguage"`

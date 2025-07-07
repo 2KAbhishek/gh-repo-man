@@ -29,17 +29,17 @@ func TestHelperProcess(t *testing.T) {
 				fmt.Fprintf(os.Stdout, `[{"name":"repo1","description":"desc1","url":"https://github.com/user/repo1","stargazerCount":100,"forkCount":50,"watchers":30,"issues":{"totalCount":20},"owner":{"login":"user"},"createdAt":"2022-01-01T00:00:00Z","updatedAt":"2022-01-02T00:00:00Z","diskUsage":1000,"homepageUrl":"https://user.github.io/repo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":["go","cli"],"primaryLanguage":{"name":"Go"}},{"name":"repo2","description":"desc2","url":"https://github.com/user/repo2","stargazerCount":200,"forkCount":100,"watchers":60,"issues":{"totalCount":40},"owner":{"login":"user"},"createdAt":"2022-03-01T00:00:00Z","updatedAt":"2022-03-02T00:00:00Z","diskUsage":2000,"homepageUrl":"","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[],"primaryLanguage":{"name":"Python"}}]`)
 			}
 		} else if os.Args[4] == "api" && strings.HasPrefix(os.Args[5], "repos/") && strings.HasSuffix(os.Args[5], "/readme") {
-            repoFullName := strings.TrimSuffix(strings.TrimPrefix(os.Args[5], "repos/"), "/readme")
-            if repoFullName == "user/repo1" {
-                fmt.Fprint(os.Stdout, "# Repo1 Readme\n\nThis is the readme content for repo1.")
-            } else if repoFullName == "user/userRepo1" {
-                fmt.Fprint(os.Stdout, "# UserRepo1 Readme\n\nThis is the readme content for userRepo1.")
-            } else {
-                // Simulate 404 for other readmes
-                fmt.Fprint(os.Stderr, "Not Found")
-                os.Exit(1)
-            }
-        }
+			repoFullName := strings.TrimSuffix(strings.TrimPrefix(os.Args[5], "repos/"), "/readme")
+			if repoFullName == "user/repo1" {
+				fmt.Fprint(os.Stdout, "# Repo1 Readme\n\nThis is the readme content for repo1.")
+			} else if repoFullName == "user/userRepo1" {
+				fmt.Fprint(os.Stdout, "# UserRepo1 Readme\n\nThis is the readme content for userRepo1.")
+			} else {
+				// Simulate 404 for other readmes
+				fmt.Fprint(os.Stderr, "Not Found")
+				os.Exit(1)
+			}
+		}
 	case "git":
 		if os.Args[4] == "clone" {
 			if os.Args[5] == "fail_clone_url" {
@@ -49,8 +49,8 @@ func TestHelperProcess(t *testing.T) {
 			fmt.Fprintf(os.Stdout, "Cloning into '%s'...\n", os.Args[5])
 		}
 	case "fzf":
-        fmt.Fprint(os.Stdout, "repo1\n")
-    case "gh-repo-manager":
+		fmt.Fprint(os.Stdout, "repo1\n")
+	case "gh-repo-manager":
 		if os.Args[4] == "preview" && len(os.Args) > 5 { // os.Args[5] should be the repo name
 			repoName := os.Args[5]
 			if repoName == "repo1" {
@@ -64,8 +64,8 @@ func TestHelperProcess(t *testing.T) {
 				fmt.Printf(" Disk Usage: %d KB\n", 1000)
 				fmt.Printf(" [Homepage](%s)\n", "https://user.github.io/repo1")
 				fmt.Printf("\n Topics: %s\n", "go, cli")
-                fmt.Print("\n---\n")
-                fmt.Println("# Repo1 Readme\n\nThis is the readme content for repo1.")
+				fmt.Print("\n---\n")
+				fmt.Println("# Repo1 Readme\n\nThis is the readme content for repo1.")
 			} else if repoName == "userRepo1" {
 				fmt.Printf("# %s\n\n%s Language: %s\n", repoName, "Git", "Go")
 				fmt.Printf(" %s\n", "userDesc1")
@@ -110,8 +110,16 @@ func TestGetRepos(t *testing.T) {
 	}
 
 	expectedRepos := []cmd.Repo{
-		{Name: "repo1", Description: "desc1", HTMLURL: "https://github.com/user/repo1", StargazerCount: 100, ForkCount: 50, WatchersCount: 30, Issues: struct{TotalCount int `json:"totalCount"`}{TotalCount: 20}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 1000, HomepageURL: "https://user.github.io/repo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []string{"go", "cli"}, PrimaryLanguage: struct{Name string `json:"name"`}{Name: "Go"}},
-		{Name: "repo2", Description: "desc2", HTMLURL: "https://github.com/user/repo2", StargazerCount: 200, ForkCount: 100, WatchersCount: 60, Issues: struct{TotalCount int `json:"totalCount"`}{TotalCount: 40}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 3, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 3, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 2000, HomepageURL: "", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []string{}, PrimaryLanguage: struct{Name string `json:"name"`}{Name: "Python"}},
+		{Name: "repo1", Description: "desc1", HTMLURL: "https://github.com/user/repo1", StargazerCount: 100, ForkCount: 50, WatchersCount: 30, Issues: struct {
+			TotalCount int `json:"totalCount"`
+		}{TotalCount: 20}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 1000, HomepageURL: "https://user.github.io/repo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []string{"go", "cli"}, PrimaryLanguage: struct {
+			Name string `json:"name"`
+		}{Name: "Go"}},
+		{Name: "repo2", Description: "desc2", HTMLURL: "https://github.com/user/repo2", StargazerCount: 200, ForkCount: 100, WatchersCount: 60, Issues: struct {
+			TotalCount int `json:"totalCount"`
+		}{TotalCount: 40}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 3, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 3, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 2000, HomepageURL: "", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []string{}, PrimaryLanguage: struct {
+			Name string `json:"name"`
+		}{Name: "Python"}},
 	}
 
 	if !reflect.DeepEqual(repos, expectedRepos) {
@@ -124,7 +132,11 @@ func TestGetRepos(t *testing.T) {
 	}
 
 	expectedUserRepos := []cmd.Repo{
-		{Name: "userRepo1", Description: "userDesc1", HTMLURL: "https://github.com/user/userRepo1", StargazerCount: 10, ForkCount: 5, WatchersCount: 3, Issues: struct{TotalCount int `json:"totalCount"`}{TotalCount: 2}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 100, HomepageURL: "https://user.github.io/userRepo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []string{"go", "cli"}, PrimaryLanguage: struct{Name string `json:"name"`}{Name: "Go"}},
+		{Name: "userRepo1", Description: "userDesc1", HTMLURL: "https://github.com/user/userRepo1", StargazerCount: 10, ForkCount: 5, WatchersCount: 3, Issues: struct {
+			TotalCount int `json:"totalCount"`
+		}{TotalCount: 2}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 100, HomepageURL: "https://user.github.io/userRepo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []string{"go", "cli"}, PrimaryLanguage: struct {
+			Name string `json:"name"`
+		}{Name: "Go"}},
 	}
 
 	if !reflect.DeepEqual(repos, expectedUserRepos) {

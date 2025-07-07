@@ -174,12 +174,12 @@ var PreviewCmd = &cobra.Command{
 			fmt.Println("\n>  Template")
 		}
 		if len(targetRepo.Topics) > 0 {
-            fmt.Printf("\n Topics: %s\n", strings.Join(targetRepo.Topics, ", "))
-        }
+			fmt.Printf("\n Topics: %s\n", strings.Join(targetRepo.Topics, ", "))
+		}
 
-        fmt.Print("\n---\n") // Horizontal line
+		fmt.Print("\n---\n") // Horizontal line
 
-        readmeContent, err := GetReadme(targetRepo.Owner.Login + "/" + targetRepo.Name)
+		readmeContent, err := GetReadme(targetRepo.Owner.Login + "/" + targetRepo.Name)
 		if err != nil {
 			fmt.Println("Error fetching README:", err)
 			return
