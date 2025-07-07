@@ -106,19 +106,88 @@ var PreviewCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Printf("Name: %s\n", targetRepo.Name)
-		fmt.Printf("Description: %s\n", targetRepo.Description)
-		fmt.Printf("SSH URL: %s\n", targetRepo.Ssh_url)
-		fmt.Printf("Stars: %d\n", targetRepo.StargazerCount)
-		fmt.Printf("Forks: %d\n", targetRepo.ForkCount)
+		// Determine icon based on language
+		icon := "Git"
+		switch targetRepo.PrimaryLanguage.Name {
+		case "Go":
+			icon = "Go"
+		case "Python":
+			icon = ""
+		case "JavaScript", "TypeScript":
+			icon = ""
+		case "Java":
+			icon = "pr"
+		case "C", "C++":
+			icon = "do"
+		case "Ruby":
+			icon = ""
+		case "PHP":
+			icon = ""
+		case "Rust":
+			icon = ""
+		case "Swift":
+			icon = "swift"
+		case "Kotlin":
+			icon = ""
+		case "Shell":
+			icon = "sh"
+		case "HTML":
+			icon = "html"
+		case "CSS":
+			icon = "css"
+		case "Lua":
+			icon = "lua"
+		}
 
-		fmt.Println("\n---\n") // Horizontal line
+		// Format repo info similar to the Lua template
+		fmt.Printf("# %s\n\n%s Language: %s\n", targetRepo.Name, icon, targetRepo.PrimaryLanguage.Name)
 
-		readmeContent, err := GetReadme(targetRepo.Name)
+		if targetRepo.Description != "" {
+			fmt.Printf(" %s\n", targetRepo.Description)
+		}
+
+		fmt.Printf(" [Link](%s)\n\n", targetRepo.HTMLURL)
+		fmt.Printf(" %d   %d   %d   %d\n",
+			targetRepo.StargazerCount,
+			targetRepo.ForkCount,
+			targetRepo.WatchersCount,
+			targetRepo.Issues.TotalCount,
+		)
+		fmt.Printf(" Owner: %s\n", targetRepo.Owner.Login)
+		fmt.Printf(" Created At: %s\n", targetRepo.CreatedAt.Format("2006-01-02 15:04:05"))
+		fmt.Printf(" Last Updated: %s\n", targetRepo.UpdatedAt.Format("2006-01-02 15:04:05"))
+		fmt.Printf(" Disk Usage: %d KB\n", targetRepo.DiskUsage)
+
+		if targetRepo.HomepageURL != "" {
+			fmt.Printf(" [Homepage](%s)\n", targetRepo.HomepageURL)
+		}
+		if targetRepo.IsFork {
+			fmt.Println("\n>  Forked")
+		}
+		if targetRepo.IsArchived {
+			fmt.Println("\n>  Archived")
+		}
+		if targetRepo.IsPrivate {
+			fmt.Println("\n>  Private")
+		}
+		if targetRepo.IsTemplate {
+			fmt.Println("\n>  Template")
+		}
+		if len(targetRepo.Topics) > 0 {
+            fmt.Printf("\n Topics: %s\n", strings.Join(targetRepo.Topics, ", "))
+        }
+
+        fmt.Print("\n---\n") // Horizontal line
+
+        readmeContent, err := GetReadme(targetRepo.Owner.Login + "/" + targetRepo.Name)
 		if err != nil {
 			fmt.Println("Error fetching README:", err)
 			return
 		}
-		fmt.Println(readmeContent)
+		if readmeContent != "" {
+			fmt.Println(readmeContent)
+		} else {
+			fmt.Println("No README found.")
+		}
 	},
 }
