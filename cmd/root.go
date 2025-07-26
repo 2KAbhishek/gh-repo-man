@@ -10,6 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var config Config
+
+// SetConfig allows tests to override the config
+func SetConfig(cfg Config) {
+	config = cfg
+}
+
 var User string
 
 var rootCmd = &cobra.Command{
@@ -66,7 +73,7 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringVarP(&User, "user", "u", "", "The user to fetch repositories for.")
-
+	config = LoadConfig(DefaultConfigPath)
 	rootCmd.AddCommand(PreviewCmd)
 }
 
@@ -136,15 +143,17 @@ var PreviewCmd = &cobra.Command{
 
 		fmt.Print("\n---\n")
 
-		readmeContent, err := GetReadme(targetRepo.Owner.Login + "/" + targetRepo.Name)
-		if err != nil {
-			fmt.Println("Error fetching README:", err)
-			return
-		}
-		if readmeContent != "" {
-			fmt.Println(readmeContent)
-		} else {
-			fmt.Println("No README found.")
+		if config.ShowReadmeInPreview {
+			readmeContent, err := GetReadme(targetRepo.Owner.Login + "/" + targetRepo.Name)
+			if err != nil {
+				fmt.Println("Error fetching README:", err)
+				return
+			}
+			if readmeContent != "" {
+				fmt.Println(readmeContent)
+			} else {
+				fmt.Println("No README found.")
+			}
 		}
 	},
 }
