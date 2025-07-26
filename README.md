@@ -61,6 +61,18 @@ go build -o gh-repo-manager main.go
 gh extension install .
 ```
 
+## ⚙️ Configuration
+
+By default, gh-repo-manager will look for a YAML config file at `~/.config/gh-repo-man.yml`.
+
+Example config file:
+
+```yaml
+show_readme_in_preview: false
+```
+
+- `show_readme_in_preview`: If true, the README will be shown in the repository preview pane. Default is `false`.
+
 ## 🚀 Usage
 
 ```bash
@@ -103,7 +115,7 @@ Planning to add repository management features like creating, archiving, and upd
 - [x] Add extensive test coverage with mocking
 - [x] Extract constants and improve code organization
 - [x] Add Unicode icons and language mappings
-- [ ] Add configuration file support
+- [x] Add configuration file support (YAML, ~/.config/gh-repo-man.yml)
 - [ ] Add caching support for better performance
 - [ ] Add repository creation functionality
 - [ ] Add repository archiving/unarchiving
