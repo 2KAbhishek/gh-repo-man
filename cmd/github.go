@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -76,28 +77,86 @@ func SelectReposByNames(repoMap map[string]Repo, selectedNames []string) []Repo 
 	return selectedRepos
 }
 
+// Constants for GitHub API and validation
+const (
+	// JSON fields to request from GitHub API
+	JSONFields = "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage"
+	
+	// Default limit for repository listing
+	DefaultRepoLimit = "1000"
+	
+	// GitHub username constraints
+	MaxUsernameLength = 39 // GitHub's maximum username length
+	MinUsernameLength = 1  // GitHub's minimum username length
+)
+
+// Username validation regex - allows alphanumeric, hyphens, and underscores
+var usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-_]*[a-zA-Z0-9])?$`)
+
 var ExecCommand = exec.Command
 
-func GetRepos(user string) ([]Repo, error) {
-	var cmd *exec.Cmd
-	if user == "" {
-		cmd = ExecCommand("gh", "repo", "list", "--limit", "1000", "--json", "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage")
-	} else {
-		cmd = ExecCommand("gh", "repo", "list", user, "--json", "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage")
+// ValidateUsername validates that a username is safe and follows GitHub username rules
+func ValidateUsername(username string) error {
+	if username == "" {
+		return nil // empty username is valid (means current user)
 	}
+	
+	// Check length constraints
+	if len(username) > MaxUsernameLength {
+		return fmt.Errorf("username too long: maximum %d characters allowed", MaxUsernameLength)
+	}
+	
+	if len(username) < MinUsernameLength {
+		return fmt.Errorf("username too short: minimum %d character required", MinUsernameLength)
+	}
+	
+	// Check for shell metacharacters that could be dangerous for command injection
+	if strings.ContainsAny(username, ";|&$`(){}[]<>\"'\\") {
+		return fmt.Errorf("username contains invalid characters that could be unsafe")
+	}
+	
+	// Check GitHub username format rules:
+	// - Must start and end with alphanumeric character
+	// - Can contain hyphens and underscores in the middle
+	if !usernameRegex.MatchString(username) {
+		return fmt.Errorf("username format is invalid: must start and end with alphanumeric character, may contain hyphens and underscores")
+	}
+	
+	return nil
+}
+
+func GetRepos(user string) ([]Repo, error) {
+	// Validate username input
+	if err := ValidateUsername(user); err != nil {
+		return nil, fmt.Errorf("invalid username: %w", err)
+	}
+
+	// Build command arguments
+	args := []string{"repo", "list"}
+	if user != "" {
+		args = append(args, user)
+	} else {
+		args = append(args, "--limit", DefaultRepoLimit)
+	}
+	args = append(args, "--json", JSONFields)
+	
+	cmd := ExecCommand("gh", args...)
 
 	out, err := cmd.Output()
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
-			return nil, fmt.Errorf("gh command failed: %s", string(exitError.Stderr))
+			userContext := "current user"
+			if user != "" {
+				userContext = fmt.Sprintf("user '%s'", user)
+			}
+			return nil, fmt.Errorf("failed to fetch repositories for %s: %s", userContext, string(exitError.Stderr))
 		}
-		return nil, fmt.Errorf("failed to execute gh command: %w", err)
+		return nil, fmt.Errorf("failed to execute gh repo list command: %w", err)
 	}
 
 	var repos []Repo
-	err = json.Unmarshal(out, &repos)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal gh output: %w", err)
+	if err := json.Unmarshal(out, &repos); err != nil {
+		return nil, fmt.Errorf("failed to parse GitHub API response: %w", err)
 	}
 
 	return repos, nil
