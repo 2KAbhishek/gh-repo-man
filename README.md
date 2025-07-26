@@ -1,100 +1,149 @@
-# gh repo-manager
+<div align = "center">
 
-A `gh` CLI extension to manage your GitHub repositories. Browse, clone, and manage your repos with ease.
+<h1><a href="https://github.com/2kabhishek/gh-repo-manager">gh-repo-manager</a></h1>
 
-## Features
+<a href="https://github.com/2KAbhishek/gh-repo-manager/blob/main/LICENSE">
+<img alt="License" src="https://img.shields.io/github/license/2kabhishek/gh-repo-manager?style=flat&color=eee&label="> </a>
 
-*   **Interactive UI (FZF):** A terminal-based UI using `fzf` to browse your repositories with live preview.
-*   **Multi-clone:** Clone multiple repositories at once.
-*   **Browse User Repos:** Browse the public repositories of any user on GitHub.
-*   **Repository Details:** View details of a repository, including its description, stars, forks, and `README.md` content in the `fzf` preview window.
+<a href="https://github.com/2KAbhishek/gh-repo-manager/graphs/contributors">
+<img alt="People" src="https://img.shields.io/github/contributors/2kabhishek/gh-repo-manager?style=flat&color=ffaaf2&label=People"> </a>
 
-## Installation
+<a href="https://github.com/2KAbhishek/gh-repo-manager/stargazers">
+<img alt="Stars" src="https://img.shields.io/github/stars/2kabhishek/gh-repo-manager?style=flat&color=98c379&label=Stars"></a>
 
-1.  Install the `gh` CLI. See the official [installation guide](https://github.com/cli/cli#installation).
-2.  Install `fzf`. See the official [installation guide](https://github.com/junegunn/fzf#installation).
-3.  Install the extension:
+<a href="https://github.com/2KAbhishek/gh-repo-manager/network/members">
+<img alt="Forks" src="https://img.shields.io/github/forks/2kabhishek/gh-repo-manager?style=flat&color=66a8e0&label=Forks"> </a>
 
-    ```sh
-    gh extension install 2KAbhishek/gh-repo-manager
-    ```
+<a href="https://github.com/2KAbhishek/gh-repo-manager/watchers">
+<img alt="Watches" src="https://img.shields.io/github/watchers/2kabhishek/gh-repo-manager?style=flat&color=f5d08b&label=Watches"> </a>
 
-## Usage
+<a href="https://github.com/2KAbhishek/gh-repo-manager/pulse">
+<img alt="Last Updated" src="https://img.shields.io/github/last-commit/2kabhishek/gh-repo-manager?style=flat&color=e06c75&label="> </a>
 
-### Browse Your Repositories
+<h3>Manage GitHub Repositories with Ease 📦🚀</h3>
 
-To browse your own repositories, simply run:
+</div>
 
-```sh
-gh repo-manager
+gh-repo-manager is a `gh CLI extension` that allows `developers` to `browse, clone, and manage their GitHub repositories interactively`.
+
+## ✨ Features
+
+- **Interactive UI (FZF):** Terminal-based UI using `fzf` to browse repositories with live preview
+- **Multi-clone:** Clone multiple repositories at once with concurrent operations
+- **Browse User Repos:** Browse public repositories of any GitHub user
+- **Repository Details:** View comprehensive repo details including description, stars, forks, and README content
+- **Context Support:** Proper cancellation and timeout handling for all operations
+- **Security:** Input validation and command injection prevention
+- **Performance:** Concurrent cloning with semaphore-based limiting
+
+## ⚡ Setup
+
+### ⚙️ Requirements
+
+- `gh` CLI >= 2.0.0
+- `fzf` for interactive browsing
+- Go >= 1.19 (for building from source)
+
+### 💻 Installation
+
+#### Via GitHub CLI Extensions
+
+```bash
+gh extension install 2KAbhishek/gh-repo-manager
 ```
 
-This will open an interactive `fzf` interface where you can browse your repositories, view their details in the preview window, and select them for cloning.
+#### From Source
 
-### Browse Another User's Repositories
-
-To browse the public repositories of another user, use the `--user` flag:
-
-```sh
-gh repo-manager --user <username>
+```bash
+git clone https://github.com/2KAbhishek/gh-repo-manager
+cd gh-repo-manager
+go build -o gh-repo-manager main.go
+gh extension install .
 ```
 
-For example:
+## 🚀 Usage
 
-```sh
-gh repo-manager --user "torvalds"
+```bash
+USAGE:
+    gh repo-manager [--user USERNAME]
+
+Arguments:
+    --user, -u: Browse repositories for a specific user (optional)
+
+Examples:
+    # Browse your own repositories
+    gh repo-manager
+
+    # Browse another user's repositories
+    gh repo-manager --user torvalds
+
+    # Interactive selection with Tab/Shift+Tab, Enter to clone
 ```
 
-### Clone Repositories
+### Navigation
 
-In the `fzf` interface, you can select multiple repositories by pressing `Tab` or `Shift+Tab`. Once you've made your selection, press `Enter` to clone them to your local machine.
+- Use arrow keys to navigate through repositories
+- Press `Tab` or `Shift+Tab` to select multiple repositories
+- Press `Enter` to clone selected repositories
+- View repository details in the preview pane
 
-## Development
+## 🏗️ What's Next
 
-### Building from source
+Planning to add repository management features like creating, archiving, and updating repositories.
 
-1.  Clone the repository:
+### ✅ To-Do
 
-    ```sh
-    git clone https://github.com/2KAbhishek/gh-repo-manager.git
-    cd gh-repo-manager
-    ```
+- [x] Initialize Go module and project structure
+- [x] Implement basic repository fetching and display
+- [x] Add interactive FZF UI with preview
+- [x] Implement multi-repository cloning
+- [x] Add user flag for browsing other users' repos
+- [x] Add comprehensive error handling and validation
+- [x] Implement concurrent cloning with proper context support
+- [x] Add extensive test coverage with mocking
+- [x] Extract constants and improve code organization
+- [x] Add Unicode icons and language mappings
+- [ ] Add configuration file support
+- [ ] Add caching support for better performance
+- [ ] Add repository creation functionality
+- [ ] Add repository archiving/unarchiving
+- [ ] Add bulk repository operations
 
-2.  Build the executable:
+## 🧑‍💻 Behind The Code
 
-    ```sh
-    go build -o gh-repo-manager main.go
-    ```
+### 🌈 Inspiration
 
-3.  Install the extension locally:
+gh-repo-manager was inspired by the need for a more efficient way to browse and clone multiple GitHub repositories without switching between browser and terminal.
 
-    ```sh
-    gh extension install .
-    ```
+### 💡 Challenges/Learnings
 
-### Running Tests
+- The main challenges were implementing proper context cancellation for concurrent operations and handling GitHub API rate limits
+- I learned about Go's context package, concurrent programming patterns, and effective CLI tool design
 
-To run all tests:
+### 🧰 Tooling
 
-```sh
-go test ./...
-```
+- [dots2k](https://github.com/2kabhishek/dots2k) — Dev Environment
+- [nvim2k](https://github.com/2kabhishek/nvim2k) — Personalized Editor
+- [sway2k](https://github.com/2kabhishek/sway2k) — Desktop Environment
+- [qute2k](https://github.com/2kabhishek/qute2k) — Personalized Browser
 
-## Todos
+### 🔍 More Info
 
-*   [x] Initialize Go module.
-*   [x] Set up the basic project structure.
-*   [x] Implement the `gh repo-manager` command.
-*   [x] Fetch and display a user's repositories.
-*   [x] Implement the interactive UI for browsing repositories.
-*   [x] Add tests for fetching repositories.
-*   [x] Implement the multi-clone functionality.
-*   [x] Add tests for the cloning logic.
-*   [x] Implement the `--user` flag to browse another user's repositories.
-*   [x] Add tests for the `--user` flag.
-*   [x] Refine the UI and add more repository details.
-*   [x] Add error handling for API requests and cloning errors.
-*   [x] Write comprehensive documentation.
-*   [x] Create a release workflow.
-*   [x] Integrate with fzf and show information in the fzf preview section.
-*   [x] Move tests to a dedicated directory, remove any comments that are not necessary, modularize the source and test code.
+- [GitHub CLI](https://github.com/cli/cli) — GitHub's official CLI tool
+- [fzf](https://github.com/junegunn/fzf) — Command-line fuzzy finder
+- [Cobra](https://github.com/spf13/cobra) — CLI framework for Go
+
+<hr>
+
+<div align="center">
+
+<strong>⭐ hit the star button if you found this useful ⭐</strong><br>
+
+<a href="https://github.com/2KAbhishek/gh-repo-manager">Source</a>
+| <a href="https://2kabhishek.github.io/blog" target="_blank">Blog </a>
+| <a href="https://twitter.com/2kabhishek" target="_blank">Twitter </a>
+| <a href="https://linkedin.com/in/2kabhishek" target="_blank">LinkedIn </a>
+| <a href="https://2kabhishek.github.io/links" target="_blank">More Links </a>
+| <a href="https://2kabhishek.github.io/projects" target="_blank">Other Projects </a>
+
+</div>
