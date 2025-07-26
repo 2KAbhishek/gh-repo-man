@@ -168,6 +168,7 @@ func TestFzfIntegration(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 	dummyCmd := &cobra.Command{}
+	cmd.SetConfig(cmd.Config{ShowReadmeInPreview: true})
 	cmd.PreviewCmd.Run(dummyCmd, []string{"repo1"})
 
 	w.Close()
@@ -193,6 +194,7 @@ func TestFzfIntegration(t *testing.T) {
 	oldUser := cmd.User
 	cmd.User = "someuser"
 
+	cmd.SetConfig(cmd.Config{ShowReadmeInPreview: true})
 	cmd.PreviewCmd.Run(dummyCmd, []string{"userRepo1"})
 
 	w.Close()
