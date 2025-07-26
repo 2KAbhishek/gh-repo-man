@@ -43,6 +43,13 @@ var rootCmd = &cobra.Command{
 
 		err = fzfCmd.Run()
 		if err != nil {
+			if exitError, ok := err.(*exec.ExitError); ok {
+				exitCode := exitError.ExitCode()
+				if exitCode == 130 || exitCode == 1 {
+					fmt.Println("Selection cancelled.")
+					return
+				}
+			}
 			fmt.Println("Error running fzf:", err)
 			os.Exit(1)
 		}

@@ -46,6 +46,12 @@ func TestHelperProcess(t *testing.T) {
 			fmt.Fprintf(os.Stdout, "Cloning into '%s'...\n", os.Args[5])
 		}
 	case "fzf":
+		if len(os.Args) > 7 && os.Args[7] == "--test-cancel" {
+			os.Exit(130)
+		}
+		if len(os.Args) > 7 && os.Args[7] == "--test-esc" {
+			os.Exit(1)
+		}
 		fmt.Fprint(os.Stdout, "repo1\n")
 	case "gh-repo-manager":
 		if os.Args[4] == "preview" && len(os.Args) > 5 {
