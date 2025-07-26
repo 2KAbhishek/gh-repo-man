@@ -24,9 +24,9 @@ func TestHelperProcess(t *testing.T) {
 			// gh repo list [user] --limit 1000 --json ...
 			// Check if a user is provided. The user would be at os.Args[6] if present, otherwise --limit is at os.Args[6]
 			if len(os.Args) > 6 && os.Args[6] != "--limit" { // User is provided
-				fmt.Fprintf(os.Stdout, `[{"name":"userRepo1","description":"userDesc1","url":"https://github.com/user/userRepo1","stargazerCount":10,"forkCount":5,"watchers":3,"issues":{"totalCount":2},"owner":{"login":"user"},"createdAt":"2023-01-01T00:00:00Z","updatedAt":"2023-01-02T00:00:00Z","diskUsage":100,"homepageUrl":"https://user.github.io/userRepo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":["go","cli"],"primaryLanguage":{"name":"Go"}}]`)
+				fmt.Fprintf(os.Stdout, `[{"name":"userRepo1","description":"userDesc1","url":"https://github.com/user/userRepo1","stargazerCount":10,"forkCount":5,"watchers":{"totalCount":3},"issues":{"totalCount":2},"owner":{"login":"user"},"createdAt":"2023-01-01T00:00:00Z","updatedAt":"2023-01-02T00:00:00Z","diskUsage":100,"homepageUrl":"https://user.github.io/userRepo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[{"name":"go"},{"name":"cli"}],"primaryLanguage":{"name":"Go"}}]`)
 			} else { // No user provided
-				fmt.Fprintf(os.Stdout, `[{"name":"repo1","description":"desc1","url":"https://github.com/user/repo1","stargazerCount":100,"forkCount":50,"watchers":30,"issues":{"totalCount":20},"owner":{"login":"user"},"createdAt":"2022-01-01T00:00:00Z","updatedAt":"2022-01-02T00:00:00Z","diskUsage":1000,"homepageUrl":"https://user.github.io/repo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":["go","cli"],"primaryLanguage":{"name":"Go"}},{"name":"repo2","description":"desc2","url":"https://github.com/user/repo2","stargazerCount":200,"forkCount":100,"watchers":60,"issues":{"totalCount":40},"owner":{"login":"user"},"createdAt":"2022-03-01T00:00:00Z","updatedAt":"2022-03-02T00:00:00Z","diskUsage":2000,"homepageUrl":"","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[],"primaryLanguage":{"name":"Python"}}]`)
+				fmt.Fprintf(os.Stdout, `[{"name":"repo1","description":"desc1","url":"https://github.com/user/repo1","stargazerCount":100,"forkCount":50,"watchers":{"totalCount":30},"issues":{"totalCount":20},"owner":{"login":"user"},"createdAt":"2022-01-01T00:00:00Z","updatedAt":"2022-01-02T00:00:00Z","diskUsage":1000,"homepageUrl":"https://user.github.io/repo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[{"name":"go"},{"name":"cli"}],"primaryLanguage":{"name":"Go"}},{"name":"repo2","description":"desc2","url":"https://github.com/user/repo2","stargazerCount":200,"forkCount":100,"watchers":{"totalCount":60},"issues":{"totalCount":40},"owner":{"login":"user"},"createdAt":"2022-03-01T00:00:00Z","updatedAt":"2022-03-02T00:00:00Z","diskUsage":2000,"homepageUrl":"","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[],"primaryLanguage":{"name":"Python"}}]`)
 			}
 		} else if os.Args[4] == "api" && strings.HasPrefix(os.Args[5], "repos/") && strings.HasSuffix(os.Args[5], "/readme") {
 			repoFullName := strings.TrimSuffix(strings.TrimPrefix(os.Args[5], "repos/"), "/readme")
@@ -102,22 +102,23 @@ func TestGetRepos(t *testing.T) {
 		t.Errorf("GetRepos() with empty user returned an error: %v", err)
 	}
 
-	type Issues struct {
-		TotalCount int `json:"totalCount"`
-	}
-	type Language struct {
-		Name string `json:"name"`
-	}
-
 	expectedRepos := []cmd.Repo{
-		{Name: "repo1", Description: "desc1", HTMLURL: "https://github.com/user/repo1", StargazerCount: 100, ForkCount: 50, WatchersCount: 30, Issues: struct {
+		{Name: "repo1", Description: "desc1", HTMLURL: "https://github.com/user/repo1", StargazerCount: 100, ForkCount: 50, Watchers: struct {
 			TotalCount int `json:"totalCount"`
-		}{TotalCount: 20}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 1000, HomepageURL: "https://user.github.io/repo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []string{"go", "cli"}, PrimaryLanguage: struct {
+		}{TotalCount: 30}, Issues: struct {
+			TotalCount int `json:"totalCount"`
+		}{TotalCount: 20}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 1000, HomepageURL: "https://user.github.io/repo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []struct {
+			Name string `json:"name"`
+		}{{Name: "go"}, {Name: "cli"}}, PrimaryLanguage: struct {
 			Name string `json:"name"`
 		}{Name: "Go"}},
-		{Name: "repo2", Description: "desc2", HTMLURL: "https://github.com/user/repo2", StargazerCount: 200, ForkCount: 100, WatchersCount: 60, Issues: struct {
+		{Name: "repo2", Description: "desc2", HTMLURL: "https://github.com/user/repo2", StargazerCount: 200, ForkCount: 100, Watchers: struct {
 			TotalCount int `json:"totalCount"`
-		}{TotalCount: 40}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 3, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 3, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 2000, HomepageURL: "", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []string{}, PrimaryLanguage: struct {
+		}{TotalCount: 60}, Issues: struct {
+			TotalCount int `json:"totalCount"`
+		}{TotalCount: 40}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 3, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 3, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 2000, HomepageURL: "", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []struct {
+			Name string `json:"name"`
+		}{}, PrimaryLanguage: struct {
 			Name string `json:"name"`
 		}{Name: "Python"}},
 	}
@@ -132,9 +133,13 @@ func TestGetRepos(t *testing.T) {
 	}
 
 	expectedUserRepos := []cmd.Repo{
-		{Name: "userRepo1", Description: "userDesc1", HTMLURL: "https://github.com/user/userRepo1", StargazerCount: 10, ForkCount: 5, WatchersCount: 3, Issues: struct {
+		{Name: "userRepo1", Description: "userDesc1", HTMLURL: "https://github.com/user/userRepo1", StargazerCount: 10, ForkCount: 5, Watchers: struct {
 			TotalCount int `json:"totalCount"`
-		}{TotalCount: 2}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 100, HomepageURL: "https://user.github.io/userRepo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []string{"go", "cli"}, PrimaryLanguage: struct {
+		}{TotalCount: 3}, Issues: struct {
+			TotalCount int `json:"totalCount"`
+		}{TotalCount: 2}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 100, HomepageURL: "https://user.github.io/userRepo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []struct {
+			Name string `json:"name"`
+		}{{Name: "go"}, {Name: "cli"}}, PrimaryLanguage: struct {
 			Name string `json:"name"`
 		}{Name: "Go"}},
 	}
