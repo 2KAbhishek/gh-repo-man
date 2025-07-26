@@ -40,18 +40,8 @@ var rootCmd = &cobra.Command{
 		}
 
 		selectedNames := strings.Split(strings.TrimSpace(out.String()), "\n")
-		var selectedRepos []Repo
-		for _, name := range selectedNames {
-			if name == "" {
-				continue
-			}
-			for _, repo := range repos {
-				if repo.Name == name {
-					selectedRepos = append(selectedRepos, repo)
-					break
-				}
-			}
-		}
+		repoMap := BuildRepoMap(repos)
+		selectedRepos := SelectReposByNames(repoMap, selectedNames)
 
 		if len(selectedRepos) > 0 {
 			fmt.Println("Cloning selected repositories...")
@@ -106,81 +96,45 @@ var PreviewCmd = &cobra.Command{
 			return
 		}
 
-		// Determine icon based on language
-		icon := "Git"
-		switch targetRepo.PrimaryLanguage.Name {
-		case "Go":
-			icon = "Go"
-		case "Python":
-			icon = ""
-		case "JavaScript", "TypeScript":
-			icon = ""
-		case "Java":
-			icon = "pr"
-		case "C", "C++":
-			icon = "do"
-		case "Ruby":
-			icon = ""
-		case "PHP":
-			icon = ""
-		case "Rust":
-			icon = ""
-		case "Swift":
-			icon = "swift"
-		case "Kotlin":
-			icon = ""
-		case "Shell":
-			icon = "sh"
-		case "HTML":
-			icon = "html"
-		case "CSS":
-			icon = "css"
-		case "Lua":
-			icon = "lua"
-		}
+		// Get language icon
+		languageIcon := GetLanguageIcon(targetRepo.PrimaryLanguage.Name)
 
-		// Format repo info similar to the Lua template
-		fmt.Printf("# %s\n\n%s Language: %s\n", targetRepo.Name, icon, targetRepo.PrimaryLanguage.Name)
+		// Format repo info with icons
+		fmt.Printf("# %s\n\n%s Language: %s\n", targetRepo.Name, languageIcon, targetRepo.PrimaryLanguage.Name)
 
 		if targetRepo.Description != "" {
-			fmt.Printf(" %s\n", targetRepo.Description)
+			fmt.Printf("%s %s\n", IconInfo, targetRepo.Description)
 		}
 
-		fmt.Printf(" [Link](%s)\n\n", targetRepo.HTMLURL)
-		fmt.Printf(" %d   %d   %d   %d\n",
-			targetRepo.StargazerCount,
-			targetRepo.ForkCount,
-			targetRepo.Watchers.TotalCount,
-			targetRepo.Issues.TotalCount,
+		fmt.Printf("%s [Link](%s)\n\n", IconLink, targetRepo.HTMLURL)
+		fmt.Printf("%s %d  %s %d  %s %d  %s %d\n",
+			IconStar, targetRepo.StargazerCount,
+			IconFork, targetRepo.ForkCount,
+			IconWatch, targetRepo.Watchers.TotalCount,
+			IconIssue, targetRepo.Issues.TotalCount,
 		)
-		fmt.Printf(" Owner: %s\n", targetRepo.Owner.Login)
-		fmt.Printf(" Created At: %s\n", targetRepo.CreatedAt.Format("2006-01-02 15:04:05"))
-		fmt.Printf(" Last Updated: %s\n", targetRepo.UpdatedAt.Format("2006-01-02 15:04:05"))
-		fmt.Printf(" Disk Usage: %d KB\n", targetRepo.DiskUsage)
+		fmt.Printf("%s Owner: %s\n", IconOwner, targetRepo.Owner.Login)
+		fmt.Printf("%s Created At: %s\n", IconCalendar, targetRepo.CreatedAt.Format("2006-01-02 15:04:05"))
+		fmt.Printf("%s Last Updated: %s\n", IconClock, targetRepo.UpdatedAt.Format("2006-01-02 15:04:05"))
+		fmt.Printf("%s Disk Usage: %d KB\n", IconDisk, targetRepo.DiskUsage)
 
 		if targetRepo.HomepageURL != "" {
-			fmt.Printf(" [Homepage](%s)\n", targetRepo.HomepageURL)
+			fmt.Printf("%s [Homepage](%s)\n", IconHome, targetRepo.HomepageURL)
 		}
 		if targetRepo.IsFork {
-			fmt.Println("\n>  Forked")
+			fmt.Printf("\n%s Forked\n", IconForked)
 		}
 		if targetRepo.IsArchived {
-			fmt.Println("\n>  Archived")
+			fmt.Printf("\n%s Archived\n", IconArchived)
 		}
 		if targetRepo.IsPrivate {
-			fmt.Println("\n>  Private")
+			fmt.Printf("\n%s Private\n", IconPrivate)
 		}
 		if targetRepo.IsTemplate {
-			fmt.Println("\n>  Template")
+			fmt.Printf("\n%s Template\n", IconTemplate)
 		}
 		if len(targetRepo.Topics) > 0 {
-			fmt.Printf("\n Topics: %s\n", strings.Join(func() []string {
-				var topicNames []string
-				for _, topic := range targetRepo.Topics {
-					topicNames = append(topicNames, topic.Name)
-				}
-				return topicNames
-			}(), ", "))
+			fmt.Printf("\n%s Topics: %s\n", IconTag, strings.Join(targetRepo.TopicNames(), ", "))
 		}
 
 		fmt.Print("\n---\n") // Horizontal line

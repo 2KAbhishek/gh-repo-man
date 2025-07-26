@@ -103,24 +103,8 @@ func TestGetRepos(t *testing.T) {
 	}
 
 	expectedRepos := []cmd.Repo{
-		{Name: "repo1", Description: "desc1", HTMLURL: "https://github.com/user/repo1", StargazerCount: 100, ForkCount: 50, Watchers: struct {
-			TotalCount int `json:"totalCount"`
-		}{TotalCount: 30}, Issues: struct {
-			TotalCount int `json:"totalCount"`
-		}{TotalCount: 20}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 1000, HomepageURL: "https://user.github.io/repo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []struct {
-			Name string `json:"name"`
-		}{{Name: "go"}, {Name: "cli"}}, PrimaryLanguage: struct {
-			Name string `json:"name"`
-		}{Name: "Go"}},
-		{Name: "repo2", Description: "desc2", HTMLURL: "https://github.com/user/repo2", StargazerCount: 200, ForkCount: 100, Watchers: struct {
-			TotalCount int `json:"totalCount"`
-		}{TotalCount: 60}, Issues: struct {
-			TotalCount int `json:"totalCount"`
-		}{TotalCount: 40}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 3, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 3, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 2000, HomepageURL: "", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []struct {
-			Name string `json:"name"`
-		}{}, PrimaryLanguage: struct {
-			Name string `json:"name"`
-		}{Name: "Python"}},
+		{Name: "repo1", Description: "desc1", HTMLURL: "https://github.com/user/repo1", StargazerCount: 100, ForkCount: 50, Watchers: cmd.Count{TotalCount: 30}, Issues: cmd.Count{TotalCount: 20}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 1000, HomepageURL: "https://user.github.io/repo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []cmd.Topic{{Name: "go"}, {Name: "cli"}}, PrimaryLanguage: cmd.Language{Name: "Go"}},
+		{Name: "repo2", Description: "desc2", HTMLURL: "https://github.com/user/repo2", StargazerCount: 200, ForkCount: 100, Watchers: cmd.Count{TotalCount: 60}, Issues: cmd.Count{TotalCount: 40}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2022, 3, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2022, 3, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 2000, HomepageURL: "", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []cmd.Topic{}, PrimaryLanguage: cmd.Language{Name: "Python"}},
 	}
 
 	if !reflect.DeepEqual(repos, expectedRepos) {
@@ -133,15 +117,7 @@ func TestGetRepos(t *testing.T) {
 	}
 
 	expectedUserRepos := []cmd.Repo{
-		{Name: "userRepo1", Description: "userDesc1", HTMLURL: "https://github.com/user/userRepo1", StargazerCount: 10, ForkCount: 5, Watchers: struct {
-			TotalCount int `json:"totalCount"`
-		}{TotalCount: 3}, Issues: struct {
-			TotalCount int `json:"totalCount"`
-		}{TotalCount: 2}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 100, HomepageURL: "https://user.github.io/userRepo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []struct {
-			Name string `json:"name"`
-		}{{Name: "go"}, {Name: "cli"}}, PrimaryLanguage: struct {
-			Name string `json:"name"`
-		}{Name: "Go"}},
+		{Name: "userRepo1", Description: "userDesc1", HTMLURL: "https://github.com/user/userRepo1", StargazerCount: 10, ForkCount: 5, Watchers: cmd.Count{TotalCount: 3}, Issues: cmd.Count{TotalCount: 2}, Owner: cmd.Owner{Login: "user"}, CreatedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC), DiskUsage: 100, HomepageURL: "https://user.github.io/userRepo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false, Topics: []cmd.Topic{{Name: "go"}, {Name: "cli"}}, PrimaryLanguage: cmd.Language{Name: "Go"}},
 	}
 
 	if !reflect.DeepEqual(repos, expectedUserRepos) {
@@ -201,8 +177,13 @@ func TestFzfIntegration(t *testing.T) {
 	var buf bytes.Buffer
 	buf.ReadFrom(r)
 
-	expectedOutput := "# repo1\n\nGo Language: Go\n\uf449 desc1\n\uf465 [Link](https://github.com/user/repo1)\n\n\uf005 100  \uf126 50  \uf06e 30  \uf06a 20\n\uf4ff Owner: user\n\uf455 Created At: 2022-01-01 00:00:00\n\uf43a Last Updated: 2022-01-02 00:00:00\n\uf0c7 Disk Usage: 1000 KB\n\uf46d [Homepage](https://user.github.io/repo1)\n\n\uf412 Topics: go, cli\n\n---\n# Repo1 Readme\n\nThis is the readme content for repo1.\n"
-	if !strings.Contains(buf.String(), expectedOutput) {
+	expectedOutput := buildExpectedPreviewOutput(
+		"repo1", "Go", "desc1", "https://github.com/user/repo1",
+		100, 50, 30, 20, "user", "2022-01-01 00:00:00", "2022-01-02 00:00:00",
+		1000, "https://user.github.io/repo1", []string{"go", "cli"},
+		"# Repo1 Readme\n\nThis is the readme content for repo1.",
+	)
+	if buf.String() != expectedOutput {
 		t.Errorf("previewCmd output mismatch\nGot: %q\nWant: %q", buf.String(), expectedOutput)
 	}
 
@@ -224,8 +205,13 @@ func TestFzfIntegration(t *testing.T) {
 	buf.Reset()
 	buf.ReadFrom(r)
 
-	expectedOutput = "# userRepo1\n\nGo Language: Go\n\uf449 userDesc1\n\uf465 [Link](https://github.com/user/userRepo1)\n\n\uf005 10  \uf126 5  \uf06e 3  \uf06a 2\n\uf4ff Owner: user\n\uf455 Created At: 2023-01-01 00:00:00\n\uf43a Last Updated: 2023-01-02 00:00:00\n\uf0c7 Disk Usage: 100 KB\n\uf46d [Homepage](https://user.github.io/userRepo1)\n\n\uf412 Topics: go, cli\n\n---\n# UserRepo1 Readme\n\nThis is the readme content for userRepo1.\n"
-	if !strings.Contains(buf.String(), expectedOutput) {
+	expectedOutput = buildExpectedPreviewOutput(
+		"userRepo1", "Go", "userDesc1", "https://github.com/user/userRepo1",
+		10, 5, 3, 2, "user", "2023-01-01 00:00:00", "2023-01-02 00:00:00",
+		100, "https://user.github.io/userRepo1", []string{"go", "cli"},
+		"# UserRepo1 Readme\n\nThis is the readme content for userRepo1.",
+	)
+	if buf.String() != expectedOutput {
 		t.Errorf("previewCmd output mismatch for user repo\nGot: %q\nWant: %q", buf.String(), expectedOutput)
 	}
 }
