@@ -1,0 +1,6 @@
+# Example configuration file for gh-repo-manager
+# Place this file at ~/.config/gh-repo-man.yml or use --config flag to specify a custom path
+
+# Show README content in the fzf preview pane
+# Default: false
+show_readme_in_preview: false

@@ -11,6 +11,7 @@ import (
 )
 
 var config Config
+var configPath string
 
 // SetConfig allows tests to override the config
 func SetConfig(cfg Config) {
@@ -73,6 +74,14 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringVarP(&User, "user", "u", "", "The user to fetch repositories for.")
+	rootCmd.Flags().StringVarP(&configPath, "config", "c", DefaultConfigPath, "Path to configuration file.")
+
+	// Use PreRun to load config after flags are parsed
+	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		config = LoadConfig(configPath)
+	}
+
+	// Load default config for commands that don't trigger PreRun
 	config = LoadConfig(DefaultConfigPath)
 	rootCmd.AddCommand(PreviewCmd)
 }

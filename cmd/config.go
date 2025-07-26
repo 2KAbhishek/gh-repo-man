@@ -1,8 +1,11 @@
 package cmd
 
 import (
-	"gopkg.in/yaml.v3"
+	"fmt"
 	"os"
+	"path/filepath"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
@@ -11,19 +14,54 @@ type Config struct {
 
 const DefaultConfigPath = "~/.config/gh-repo-man.yml"
 
+// LoadConfig loads configuration from the specified path with proper error handling
 func LoadConfig(path string) Config {
-	cfg := Config{ShowReadmeInPreview: false}
-	if len(path) > 1 && path[:2] == "~/" {
-		home, err := os.UserHomeDir()
-		if err == nil {
-			path = home + path[1:]
-		}
+	cfg := getDefaultConfig()
+
+	expandedPath, err := expandPath(path)
+	if err != nil {
+		return cfg
 	}
-	f, err := os.Open(path)
+
+	f, err := os.Open(expandedPath)
 	if err != nil {
 		return cfg
 	}
 	defer f.Close()
-	yaml.NewDecoder(f).Decode(&cfg)
+
+	if err := yaml.NewDecoder(f).Decode(&cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to parse config file %s: %v\n", expandedPath, err)
+		return getDefaultConfig()
+	}
+
+	if err := validateConfig(cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Invalid config in %s: %v\n", expandedPath, err)
+		return getDefaultConfig()
+	}
+
 	return cfg
+}
+
+// getDefaultConfig returns the default configuration
+func getDefaultConfig() Config {
+	return Config{
+		ShowReadmeInPreview: false,
+	}
+}
+
+// expandPath expands ~ to the user's home directory
+func expandPath(path string) (string, error) {
+	if len(path) > 1 && path[:2] == "~/" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get user home directory: %w", err)
+		}
+		return filepath.Join(home, path[2:]), nil
+	}
+	return path, nil
+}
+
+// validateConfig validates the configuration values
+func validateConfig(cfg Config) error {
+	return nil
 }
