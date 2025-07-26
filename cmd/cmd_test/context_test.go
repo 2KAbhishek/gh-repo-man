@@ -169,6 +169,4 @@ func TestConcurrentCloning(t *testing.T) {
 	if err != nil {
 		t.Errorf("CloneReposWithContext() returned error: %v", err)
 	}
-
-	// If no error occurred, the concurrency limiting worked correctly
 }
