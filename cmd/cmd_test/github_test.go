@@ -83,6 +83,9 @@ func TestHelperProcess(t *testing.T) {
 				fmt.Printf("Repository %s not found.\n", repoName)
 			}
 		}
+	case "sleep":
+		// For timeout testing - sleep for a long time to trigger context cancellation
+		time.Sleep(15 * time.Second)
 	}
 	os.Exit(0)
 }

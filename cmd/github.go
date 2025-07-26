@@ -223,15 +223,23 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 			// Create clone command with context
 			cmd := ExecCommand("git", "clone", repo.HTMLURL)
 
-			// Set up context cancellation
-			if cmd.Process != nil {
-				go func() {
-					<-ctx.Done()
-					cmd.Process.Kill()
-				}()
+			// Start the command so we can access cmd.Process
+			err := cmd.Start()
+			if err != nil {
+				errChan <- fmt.Errorf("failed to start clone for %s: %w", repo.Name, err)
+				return
 			}
 
-			err := cmd.Run()
+			// Set up context cancellation now that Process is available
+			go func() {
+				<-ctx.Done()
+				if cmd.Process != nil {
+					cmd.Process.Kill()
+				}
+			}()
+
+			// Wait for the command to complete
+			err = cmd.Wait()
 			if err != nil {
 				if ctx.Err() != nil {
 					errChan <- fmt.Errorf("clone of %s cancelled: %w", repo.Name, ctx.Err())
