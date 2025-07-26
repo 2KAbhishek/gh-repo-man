@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/2KAbhishek/gh-repo-manager/cmd"
-	"gopkg.in/yaml.v3"
 )
 
 func TestLoadConfig_Default(t *testing.T) {
@@ -17,38 +16,16 @@ func TestLoadConfig_Default(t *testing.T) {
 }
 
 func TestLoadConfig_True(t *testing.T) {
-	f, err := os.CreateTemp("", "gh-repo-man-test-*.yml")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(f.Name())
-	enc := yaml.NewEncoder(f)
-	cfg := cmd.Config{ShowReadmeInPreview: true}
-	if err := enc.Encode(&cfg); err != nil {
-		t.Fatal(err)
-	}
-	enc.Close()
-	f.Close()
-	loaded := cmd.LoadConfig(f.Name())
+	configFile := createTempConfigFile(t, cmd.Config{ShowReadmeInPreview: true})
+	loaded := cmd.LoadConfig(configFile)
 	if loaded.ShowReadmeInPreview != true {
 		t.Errorf("expected ShowReadmeInPreview=true, got %v", loaded.ShowReadmeInPreview)
 	}
 }
 
 func TestLoadConfig_False(t *testing.T) {
-	f, err := os.CreateTemp("", "gh-repo-man-test-*.yml")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(f.Name())
-	enc := yaml.NewEncoder(f)
-	cfg := cmd.Config{ShowReadmeInPreview: false}
-	if err := enc.Encode(&cfg); err != nil {
-		t.Fatal(err)
-	}
-	enc.Close()
-	f.Close()
-	loaded := cmd.LoadConfig(f.Name())
+	configFile := createTempConfigFile(t, cmd.Config{ShowReadmeInPreview: false})
+	loaded := cmd.LoadConfig(configFile)
 	if loaded.ShowReadmeInPreview != false {
 		t.Errorf("expected ShowReadmeInPreview=false, got %v", loaded.ShowReadmeInPreview)
 	}
@@ -71,14 +48,11 @@ func TestLoadConfigWithInvalidYAML(t *testing.T) {
 }
 
 func TestLoadConfigWithTildePath(t *testing.T) {
-	homeDir := t.TempDir()
-
-	originalHome := os.Getenv("HOME")
-	os.Setenv("HOME", homeDir)
-	defer os.Setenv("HOME", originalHome)
+	env := setupTempHome(t)
+	defer env.cleanup()
 
 	configContent := "show_readme_in_preview: true\n"
-	configPath := filepath.Join(homeDir, "test-config.yml")
+	configPath := filepath.Join(env.tmpDir, "test-config.yml")
 	err := os.WriteFile(configPath, []byte(configContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test config file: %v", err)

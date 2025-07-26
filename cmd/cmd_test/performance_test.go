@@ -10,17 +10,11 @@ import (
 )
 
 func TestCachePerformance(t *testing.T) {
-	tmpDir := t.TempDir()
+	env := setupTempHome(t)
+	defer env.cleanup()
 
-	originalHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", originalHome)
+	testRepos := createTestRepos()[:1]
 
-	testRepos := []cmd.Repo{
-		{Name: "test-repo", Owner: cmd.Owner{Login: "testuser"}},
-	}
-
-	// Test that saving and loading is fast
 	start := time.Now()
 	err := cmd.SaveReposToCache("testuser", testRepos)
 	if err != nil {
@@ -35,15 +29,9 @@ func TestCachePerformance(t *testing.T) {
 	}
 	loadTime := time.Since(start)
 
-	// Cache operations should be very fast (under 10ms)
-	if saveTime > 10*time.Millisecond {
-		t.Errorf("Cache save took too long: %v", saveTime)
-	}
-	if loadTime > 10*time.Millisecond {
-		t.Errorf("Cache load took too long: %v", loadTime)
-	}
+	assertCacheOperationTime(t, saveTime, "save")
+	assertCacheOperationTime(t, loadTime, "load")
 
-	// Test cache file exists
 	cachePath, err := cmd.GetCacheDir()
 	if err != nil {
 		t.Fatalf("GetCacheDir failed: %v", err)

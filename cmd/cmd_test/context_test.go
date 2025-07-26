@@ -130,12 +130,10 @@ func TestCloneReposEmptyList(t *testing.T) {
 }
 
 func TestConcurrentCloning(t *testing.T) {
-	// Mock the exec command
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
 
 	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
-		// Use helper process pattern for all commands
 		cs := []string{"-test.run=TestHelperProcess", "--", command}
 		cs = append(cs, args...)
 		cmd := exec.Command(os.Args[0], cs...)
@@ -146,9 +144,8 @@ func TestConcurrentCloning(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Create more repos than the max concurrent limit to test concurrency limiting
 	repos := make([]cmd.Repo, 6)
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		repos[i] = cmd.Repo{
 			Name:    fmt.Sprintf("repo%d", i+1),
 			HTMLURL: fmt.Sprintf("https://github.com/user/repo%d", i+1),

@@ -40,18 +40,15 @@ func TestParseTTL(t *testing.T) {
 }
 
 func TestCacheDirectoryCreation(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	originalHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", originalHome)
+	env := setupTempHome(t)
+	defer env.cleanup()
 
 	cacheDir, err := cmd.GetCacheDir()
 	if err != nil {
 		t.Fatalf("GetCacheDir() failed: %v", err)
 	}
 
-	expectedCacheDir := filepath.Join(tmpDir, ".cache", "gh-repo-man")
+	expectedCacheDir := filepath.Join(env.tmpDir, ".cache", "gh-repo-man")
 	if cacheDir != expectedCacheDir {
 		t.Errorf("Expected cache dir %s, got %s", expectedCacheDir, cacheDir)
 	}
@@ -63,16 +60,10 @@ func TestCacheDirectoryCreation(t *testing.T) {
 }
 
 func TestReposCaching(t *testing.T) {
-	tmpDir := t.TempDir()
+	env := setupTempHome(t)
+	defer env.cleanup()
 
-	originalHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", originalHome)
-
-	testRepos := []cmd.Repo{
-		{Name: "test-repo", Owner: cmd.Owner{Login: "testuser"}},
-		{Name: "another-repo", Owner: cmd.Owner{Login: "testuser"}},
-	}
+	testRepos := createTestRepos()
 
 	err := cmd.SaveReposToCache("testuser", testRepos)
 	if err != nil {
@@ -94,11 +85,8 @@ func TestReposCaching(t *testing.T) {
 }
 
 func TestReadmeCaching(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	originalHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", originalHome)
+	env := setupTempHome(t)
+	defer env.cleanup()
 
 	testContent := "# Test Repository\n\nThis is a test README."
 

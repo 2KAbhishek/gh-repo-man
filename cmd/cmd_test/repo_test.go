@@ -2,10 +2,11 @@ package cmd_test
 
 import (
 	"fmt"
-	"github.com/2KAbhishek/gh-repo-manager/cmd"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/2KAbhishek/gh-repo-manager/cmd"
 )
 
 type repoData struct {

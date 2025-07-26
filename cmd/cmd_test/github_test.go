@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	mockRepo1JSON = `{"name":"repo1","description":"desc1","url":"https://github.com/user/repo1","stargazerCount":100,"forkCount":50,"watchers":{"totalCount":30},"issues":{"totalCount":20},"owner":{"login":"user"},"createdAt":"2022-01-01T00:00:00Z","updatedAt":"2022-01-02T00:00:00Z","diskUsage":1000,"homepageUrl":"https://user.github.io/repo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[{"name":"go"},{"name":"cli"}],"primaryLanguage":{"name":"Go"}}`
-	mockRepo2JSON = `{"name":"repo2","description":"desc2","url":"https://github.com/user/repo2","stargazerCount":200,"forkCount":100,"watchers":{"totalCount":60},"issues":{"totalCount":40},"owner":{"login":"user"},"createdAt":"2022-03-01T00:00:00Z","updatedAt":"2022-03-02T00:00:00Z","diskUsage":2000,"homepageUrl":"","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[],"primaryLanguage":{"name":"Python"}}`
+	mockRepo1JSON     = `{"name":"repo1","description":"desc1","url":"https://github.com/user/repo1","stargazerCount":100,"forkCount":50,"watchers":{"totalCount":30},"issues":{"totalCount":20},"owner":{"login":"user"},"createdAt":"2022-01-01T00:00:00Z","updatedAt":"2022-01-02T00:00:00Z","diskUsage":1000,"homepageUrl":"https://user.github.io/repo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[{"name":"go"},{"name":"cli"}],"primaryLanguage":{"name":"Go"}}`
+	mockRepo2JSON     = `{"name":"repo2","description":"desc2","url":"https://github.com/user/repo2","stargazerCount":200,"forkCount":100,"watchers":{"totalCount":60},"issues":{"totalCount":40},"owner":{"login":"user"},"createdAt":"2022-03-01T00:00:00Z","updatedAt":"2022-03-02T00:00:00Z","diskUsage":2000,"homepageUrl":"","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[],"primaryLanguage":{"name":"Python"}}`
 	mockUserRepo1JSON = `{"name":"userRepo1","description":"userDesc1","url":"https://github.com/user/userRepo1","stargazerCount":10,"forkCount":5,"watchers":{"totalCount":3},"issues":{"totalCount":2},"owner":{"login":"user"},"createdAt":"2023-01-01T00:00:00Z","updatedAt":"2023-01-02T00:00:00Z","diskUsage":100,"homepageUrl":"https://user.github.io/userRepo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[{"name":"go"},{"name":"cli"}],"primaryLanguage":{"name":"Go"}}`
 )
 
@@ -29,7 +29,7 @@ var (
 		HomepageURL: "https://user.github.io/repo1", IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false,
 		Topics: []cmd.Topic{{Name: "go"}, {Name: "cli"}}, PrimaryLanguage: cmd.Language{Name: "Go"},
 	}
-	
+
 	expectedRepo2 = cmd.Repo{
 		Name: "repo2", Description: "desc2", HTMLURL: "https://github.com/user/repo2",
 		StargazerCount: 200, ForkCount: 100, Watchers: cmd.Count{TotalCount: 60}, Issues: cmd.Count{TotalCount: 40},
@@ -38,7 +38,7 @@ var (
 		IsFork: false, IsArchived: false, IsPrivate: false, IsTemplate: false,
 		Topics: []cmd.Topic{}, PrimaryLanguage: cmd.Language{Name: "Python"},
 	}
-	
+
 	expectedUserRepo1 = cmd.Repo{
 		Name: "userRepo1", Description: "userDesc1", HTMLURL: "https://github.com/user/userRepo1",
 		StargazerCount: 10, ForkCount: 5, Watchers: cmd.Count{TotalCount: 3}, Issues: cmd.Count{TotalCount: 2},
@@ -49,17 +49,14 @@ var (
 	}
 )
 
-type testSetup struct {
-	originalHome     string
-	originalExecCmd  func(string, ...string) *exec.Cmd
-	tmpDir          string
+type mockTestSetup struct {
+	env             *testEnv
+	originalExecCmd func(string, ...string) *exec.Cmd
 }
 
-func setupTest(t *testing.T) *testSetup {
-	tmpDir := t.TempDir()
-	originalHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	
+func setupMockTest(t *testing.T) *mockTestSetup {
+	env := setupTempHome(t)
+
 	originalExecCmd := cmd.ExecCommand
 	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
 		cs := []string{"-test.run=TestHelperProcess", "--", command}
@@ -68,16 +65,15 @@ func setupTest(t *testing.T) *testSetup {
 		cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 		return cmd
 	}
-	
-	return &testSetup{
-		originalHome:    originalHome,
+
+	return &mockTestSetup{
+		env:             env,
 		originalExecCmd: originalExecCmd,
-		tmpDir:         tmpDir,
 	}
 }
 
-func (ts *testSetup) cleanup() {
-	os.Setenv("HOME", ts.originalHome)
+func (ts *mockTestSetup) cleanup() {
+	ts.env.cleanup()
 	cmd.ExecCommand = ts.originalExecCmd
 }
 
@@ -85,23 +81,22 @@ func captureStdout(t *testing.T, fn func()) string {
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
-	
+
 	fn()
-	
+
 	w.Close()
 	os.Stdout = oldStdout
-	
+
 	var buf bytes.Buffer
 	buf.ReadFrom(r)
 	return buf.String()
 }
 
-
 func TestHelperProcess(t *testing.T) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
 		return
 	}
-	
+
 	command := os.Args[3]
 	switch command {
 	case "gh":
@@ -191,7 +186,7 @@ func printMockPreview(name, desc, url string, stars, forks, watchers, issues int
 }
 
 func TestGetRepos(t *testing.T) {
-	ts := setupTest(t)
+	ts := setupMockTest(t)
 	defer ts.cleanup()
 
 	t.Run("empty user", func(t *testing.T) {
@@ -199,7 +194,7 @@ func TestGetRepos(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GetRepos() with empty user returned an error: %v", err)
 		}
-		
+
 		expected := []cmd.Repo{expectedRepo1, expectedRepo2}
 		if !reflect.DeepEqual(repos, expected) {
 			t.Errorf("GetRepos() with empty user returned %+v, want %+v", repos, expected)
@@ -211,7 +206,7 @@ func TestGetRepos(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GetRepos() with a user returned an error: %v", err)
 		}
-		
+
 		expected := []cmd.Repo{expectedUserRepo1}
 		if !reflect.DeepEqual(repos, expected) {
 			t.Errorf("GetRepos() with a user returned %+v, want %+v", repos, expected)
@@ -220,7 +215,7 @@ func TestGetRepos(t *testing.T) {
 }
 
 func TestCloneRepos(t *testing.T) {
-	ts := setupTest(t)
+	ts := setupMockTest(t)
 	defer ts.cleanup()
 
 	t.Run("successful cloning", func(t *testing.T) {
@@ -228,7 +223,7 @@ func TestCloneRepos(t *testing.T) {
 			{Name: "repo1", HTMLURL: "https://github.com/user/repo1"},
 			{Name: "repo2", HTMLURL: "https://github.com/user/repo2"},
 		}
-		
+
 		err := cmd.CloneRepos(reposToClone)
 		if err != nil {
 			t.Errorf("CloneRepos() returned an error for successful cloning: %v", err)
@@ -239,7 +234,7 @@ func TestCloneRepos(t *testing.T) {
 		reposToClone := []cmd.Repo{
 			{Name: "fail_repo", HTMLURL: "fail_clone_url"},
 		}
-		
+
 		err := cmd.CloneRepos(reposToClone)
 		if err == nil {
 			t.Error("CloneRepos() did not return an error for failed cloning")
@@ -248,7 +243,7 @@ func TestCloneRepos(t *testing.T) {
 }
 
 func TestPreviewCmd(t *testing.T) {
-	ts := setupTest(t)
+	ts := setupMockTest(t)
 	defer ts.cleanup()
 
 	dummyCmd := &cobra.Command{}
@@ -258,14 +253,14 @@ func TestPreviewCmd(t *testing.T) {
 		output := captureStdout(t, func() {
 			cmd.PreviewCmd.Run(dummyCmd, []string{"repo1"})
 		})
-		
+
 		expected := buildExpectedPreviewOutput(
 			"repo1", "Go", "desc1", "https://github.com/user/repo1",
 			100, 50, 30, 20, "user", "2022-01-01 00:00:00", "2022-01-02 00:00:00",
 			1000, "https://user.github.io/repo1", []string{"go", "cli"},
 			"# Repo1 Readme\n\nThis is the readme content for repo1.",
 		)
-		
+
 		if output != expected {
 			t.Errorf("preview output mismatch\nGot: %q\nWant: %q", output, expected)
 		}
@@ -275,18 +270,18 @@ func TestPreviewCmd(t *testing.T) {
 		oldUser := cmd.User
 		cmd.User = "someuser"
 		defer func() { cmd.User = oldUser }()
-		
+
 		output := captureStdout(t, func() {
 			cmd.PreviewCmd.Run(dummyCmd, []string{"userRepo1"})
 		})
-		
+
 		expected := buildExpectedPreviewOutput(
 			"userRepo1", "Go", "userDesc1", "https://github.com/user/userRepo1",
 			10, 5, 3, 2, "user", "2023-01-01 00:00:00", "2023-01-02 00:00:00",
 			100, "https://user.github.io/userRepo1", []string{"go", "cli"},
 			"# UserRepo1 Readme\n\nThis is the readme content for userRepo1.",
 		)
-		
+
 		if output != expected {
 			t.Errorf("preview output mismatch for user repo\nGot: %q\nWant: %q", output, expected)
 		}
