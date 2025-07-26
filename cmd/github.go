@@ -118,11 +118,33 @@ func ValidateUsername(username string) error {
 	return nil
 }
 
-// GetRepos fetches repositories for a user with default timeout
+// GetRepos fetches repositories for a user with caching support
 func GetRepos(user string) ([]Repo, error) {
+	// Try to load from cache first
+	reposCacheTTL, err := ParseTTL(config.ReposCacheTTL)
+	if err != nil {
+		reposCacheTTL = 24 * time.Hour
+	}
+
+	cachePath, err := getReposCachePath(user)
+	if err == nil && IsCacheValid(cachePath, reposCacheTTL) {
+		if repos, err := LoadReposFromCache(user); err == nil {
+			return repos, nil
+		}
+	}
+
+	// Cache miss or invalid, fetch from API
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultContextTimeout)
 	defer cancel()
-	return GetReposWithContext(ctx, user)
+	repos, err := GetReposWithContext(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Save to cache (ignore errors)
+	SaveReposToCache(user, repos)
+
+	return repos, nil
 }
 
 func buildRepoListArgs(user string) []string {
@@ -283,17 +305,45 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 }
 
 func GetReadme(repoFullName string) (string, error) {
+	// Parse user and repo from repoFullName
+	parts := strings.Split(repoFullName, "/")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("invalid repository name format: %s", repoFullName)
+	}
+	user, repoName := parts[0], parts[1]
+
+	// Try to load from cache first
+	readmeCacheTTL, err := ParseTTL(config.ReadmeCacheTTL)
+	if err != nil {
+		readmeCacheTTL = 24 * time.Hour
+	}
+
+	cachePath, err := getReadmeCachePath(user, repoName)
+	if err == nil && IsCacheValid(cachePath, readmeCacheTTL) {
+		if content, err := LoadReadmeFromCache(user, repoName); err == nil {
+			return content, nil
+		}
+	}
+
+	// Cache miss or invalid, fetch from API
 	cmd := ExecCommand("gh", "api", fmt.Sprintf("repos/%s/readme", repoFullName), "-H", "Accept: application/vnd.github.v3.raw")
 	out, err := cmd.Output()
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
 			stderr := string(exitError.Stderr)
 			if exitError.ExitCode() == 1 && (strings.Contains(stderr, "Not Found") || strings.Contains(stderr, "404")) {
-				return "", nil // README not found, return empty string and no error
+				// Cache the empty result to avoid repeated 404s
+				SaveReadmeToCache(user, repoName, "")
+				return "", nil
 			}
 			return "", fmt.Errorf("gh api failed: %s", stderr)
 		}
 		return "", fmt.Errorf("failed to execute gh api command: %w", err)
 	}
-	return string(out), nil
+
+	content := string(out)
+	// Save to cache (ignore errors)
+	SaveReadmeToCache(user, repoName, content)
+
+	return content, nil
 }
