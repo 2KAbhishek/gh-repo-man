@@ -51,7 +51,7 @@ func TestValidateUsername(t *testing.T) {
 			username: strings.Repeat("a", cmd.MaxUsernameLength),
 			wantErr:  false,
 		},
-		
+
 		// Invalid usernames - length
 		{
 			name:     "too long username",
@@ -59,7 +59,7 @@ func TestValidateUsername(t *testing.T) {
 			wantErr:  true,
 			errMsg:   "username too long",
 		},
-		
+
 		// Invalid usernames - dangerous characters
 		{
 			name:     "username with semicolon",
@@ -127,7 +127,7 @@ func TestValidateUsername(t *testing.T) {
 			wantErr:  true,
 			errMsg:   "contains invalid characters",
 		},
-		
+
 		// Invalid usernames - format
 		{
 			name:     "username starting with hyphen",
@@ -175,13 +175,13 @@ func TestValidateUsername(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := cmd.ValidateUsername(tt.username)
-			
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("ValidateUsername(%q) expected error, got nil", tt.username)
 					return
 				}
-				
+
 				if tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
 					t.Errorf("ValidateUsername(%q) error = %q, want to contain %q", tt.username, err.Error(), tt.errMsg)
 				}
@@ -198,18 +198,18 @@ func TestGetReposWithValidation(t *testing.T) {
 	// Test that GetRepos properly validates usernames
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
-	
+
 	// Don't actually execute commands in this test
 	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
 		return nil // This will cause an error, but we're testing validation first
 	}
-	
+
 	// Test invalid username
 	_, err := cmd.GetRepos("user;rm-rf")
 	if err == nil {
 		t.Error("GetRepos with invalid username should return validation error")
 	}
-	
+
 	if !strings.Contains(err.Error(), "invalid username") {
 		t.Errorf("GetRepos validation error should mention 'invalid username', got: %q", err.Error())
 	}

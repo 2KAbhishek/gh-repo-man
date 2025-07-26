@@ -83,17 +83,17 @@ func SelectReposByNames(repoMap map[string]Repo, selectedNames []string) []Repo 
 const (
 	// JSON fields to request from GitHub API
 	JSONFields = "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage"
-	
+
 	// Default limit for repository listing
 	DefaultRepoLimit = "1000"
-	
+
 	// GitHub username constraints
 	MaxUsernameLength = 39 // GitHub's maximum username length
 	MinUsernameLength = 1  // GitHub's minimum username length
-	
+
 	// Cloning configuration
-	MaxConcurrentClones = 3               // Maximum number of concurrent clone operations
-	CloneTimeoutMinutes = 10              // Timeout for individual clone operations
+	MaxConcurrentClones   = 3               // Maximum number of concurrent clone operations
+	CloneTimeoutMinutes   = 10              // Timeout for individual clone operations
 	DefaultContextTimeout = 5 * time.Minute // Default timeout for operations
 )
 
@@ -107,28 +107,28 @@ func ValidateUsername(username string) error {
 	if username == "" {
 		return nil // empty username is valid (means current user)
 	}
-	
+
 	// Check length constraints
 	if len(username) > MaxUsernameLength {
 		return fmt.Errorf("username too long: maximum %d characters allowed", MaxUsernameLength)
 	}
-	
+
 	if len(username) < MinUsernameLength {
 		return fmt.Errorf("username too short: minimum %d character required", MinUsernameLength)
 	}
-	
+
 	// Check for shell metacharacters that could be dangerous for command injection
 	if strings.ContainsAny(username, ";|&$`(){}[]<>\"'\\") {
 		return fmt.Errorf("username contains invalid characters that could be unsafe")
 	}
-	
+
 	// Check GitHub username format rules:
 	// - Must start and end with alphanumeric character
 	// - Can contain hyphens and underscores in the middle
 	if !usernameRegex.MatchString(username) {
 		return fmt.Errorf("username format is invalid: must start and end with alphanumeric character, may contain hyphens and underscores")
 	}
-	
+
 	return nil
 }
 
@@ -154,7 +154,7 @@ func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
 		args = append(args, "--limit", DefaultRepoLimit)
 	}
 	args = append(args, "--json", JSONFields)
-	
+
 	// For now, use a simpler approach without the Cancel field
 	// TODO: Implement proper context cancellation for commands
 	cmd := ExecCommand("gh", args...)
@@ -164,7 +164,7 @@ func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
 		output []byte
 		err    error
 	}
-	
+
 	resultChan := make(chan result, 1)
 	go func() {
 		out, err := cmd.Output()
@@ -189,7 +189,7 @@ func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
 			}
 			return nil, fmt.Errorf("failed to execute gh repo list command: %w", res.err)
 		}
-		
+
 		var repos []Repo
 		if err := json.Unmarshal(res.output, &repos); err != nil {
 			return nil, fmt.Errorf("failed to parse GitHub API response: %w", err)
@@ -223,7 +223,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 		wg.Add(1)
 		go func(i int, repo Repo) {
 			defer wg.Done()
-			
+
 			// Acquire semaphore
 			select {
 			case sem <- struct{}{}:
@@ -234,10 +234,10 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 			defer func() { <-sem }() // Release semaphore
 
 			fmt.Printf("[%d/%d] %s Cloning %s...\n", i+1, len(repos), IconCloning, repo.Name)
-			
+
 			// Create clone command with context
 			cmd := ExecCommand("git", "clone", repo.HTMLURL)
-			
+
 			// Set up context cancellation
 			if cmd.Process != nil {
 				go func() {
@@ -259,7 +259,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 				errChan <- fmt.Errorf("failed to clone %s: %w", repo.Name, err)
 				return
 			}
-			
+
 			fmt.Printf("[%d/%d] %s Successfully cloned %s\n", i+1, len(repos), IconSuccess, repo.Name)
 			errChan <- nil
 		}(i, repo)

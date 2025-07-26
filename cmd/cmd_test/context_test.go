@@ -72,7 +72,7 @@ func TestCloneReposWithContext(t *testing.T) {
 		if command == "git" && len(args) > 2 && args[0] == "clone" {
 			// Mock successful git clone
 			clonedRepos = append(clonedRepos, args[2]) // URL is the 3rd argument
-			return exec.Command("true") // Command that always succeeds
+			return exec.Command("true")                // Command that always succeeds
 		}
 		return exec.Command("false") // Command that always fails for other cases
 	}
@@ -130,7 +130,7 @@ func TestCloneReposWithContextCancellation(t *testing.T) {
 func TestCloneReposEmptyList(t *testing.T) {
 	ctx := context.Background()
 	err := cmd.CloneReposWithContext(ctx, []cmd.Repo{})
-	
+
 	if err != nil {
 		t.Errorf("CloneReposWithContext() with empty list should not return error, got: %v", err)
 	}

@@ -10,7 +10,7 @@ const (
 	IconOwner    = "👤"
 	IconCalendar = "📅"
 	IconClock    = "⏰"
-	IconDisk     = "💾" 
+	IconDisk     = "💾"
 	IconHome     = "🏠"
 	IconTag      = "🏷"
 	IconLink     = "🔗"
