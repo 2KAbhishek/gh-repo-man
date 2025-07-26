@@ -150,7 +150,7 @@ var PreviewCmd = &cobra.Command{
 		fmt.Printf(" %d   %d   %d   %d\n",
 			targetRepo.StargazerCount,
 			targetRepo.ForkCount,
-			targetRepo.WatchersCount,
+			targetRepo.Watchers.TotalCount,
 			targetRepo.Issues.TotalCount,
 		)
 		fmt.Printf(" Owner: %s\n", targetRepo.Owner.Login)
@@ -174,7 +174,13 @@ var PreviewCmd = &cobra.Command{
 			fmt.Println("\n>  Template")
 		}
 		if len(targetRepo.Topics) > 0 {
-			fmt.Printf("\n Topics: %s\n", strings.Join(targetRepo.Topics, ", "))
+			fmt.Printf("\n Topics: %s\n", strings.Join(func() []string {
+				var topicNames []string
+				for _, topic := range targetRepo.Topics {
+					topicNames = append(topicNames, topic.Name)
+				}
+				return topicNames
+			}(), ", "))
 		}
 
 		fmt.Print("\n---\n") // Horizontal line

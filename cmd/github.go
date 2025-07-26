@@ -18,20 +18,24 @@ type Repo struct {
 	HTMLURL        string `json:"url"`
 	StargazerCount int    `json:"stargazerCount"`
 	ForkCount      int    `json:"forkCount"`
-	WatchersCount  int    `json:"watchers"`
-	Issues         struct {
+	Watchers       struct {
+		TotalCount int `json:"totalCount"`
+	} `json:"watchers"`
+	Issues struct {
 		TotalCount int `json:"totalCount"`
 	} `json:"issues"`
-	Owner           Owner     `json:"owner"`
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	DiskUsage       int       `json:"diskUsage"`
-	HomepageURL     string    `json:"homepageUrl"`
-	IsFork          bool      `json:"isFork"`
-	IsArchived      bool      `json:"isArchived"`
-	IsPrivate       bool      `json:"isPrivate"`
-	IsTemplate      bool      `json:"isTemplate"`
-	Topics          []string  `json:"repositoryTopics"`
+	Owner       Owner     `json:"owner"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	DiskUsage   int       `json:"diskUsage"`
+	HomepageURL string    `json:"homepageUrl"`
+	IsFork      bool      `json:"isFork"`
+	IsArchived  bool      `json:"isArchived"`
+	IsPrivate   bool      `json:"isPrivate"`
+	IsTemplate  bool      `json:"isTemplate"`
+	Topics      []struct {
+		Name string `json:"name"`
+	} `json:"repositoryTopics"`
 	PrimaryLanguage struct {
 		Name string `json:"name"`
 	} `json:"primaryLanguage"`
@@ -42,9 +46,9 @@ var ExecCommand = exec.Command
 func GetRepos(user string) ([]Repo, error) {
 	var cmd *exec.Cmd
 	if user == "" {
-		cmd = ExecCommand("gh", "repo", "list", "--limit", "1000", "--json", "name,description,url,stargazerCount,forkCount,watchers,issues.totalCount,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage")
+		cmd = ExecCommand("gh", "repo", "list", "--limit", "1000", "--json", "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage")
 	} else {
-		cmd = ExecCommand("gh", "repo", "list", user, "--json", "name,description,sshUrl,url,stargazerCount,forkCount,watchersCount,openIssuesCount,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage")
+		cmd = ExecCommand("gh", "repo", "list", user, "--json", "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage")
 	}
 
 	out, err := cmd.Output()
