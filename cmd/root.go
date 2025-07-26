@@ -35,7 +35,13 @@ var rootCmd = &cobra.Command{
 			repoNames = append(repoNames, repo.Name)
 		}
 
-		fzfCmd := exec.Command("fzf", "--multi", "--ansi", "--preview", "gh-repo-manager preview {}")
+		var previewCmd string
+		if User != "" {
+			previewCmd = fmt.Sprintf("gh-repo-manager preview {} --user %s", User)
+		} else {
+			previewCmd = "gh-repo-manager preview {}"
+		}
+		fzfCmd := exec.Command("fzf", "--multi", "--ansi", "--preview", previewCmd)
 		fzfCmd.Stdin = strings.NewReader(strings.Join(repoNames, "\n"))
 		var out bytes.Buffer
 		fzfCmd.Stdout = &out
@@ -88,8 +94,12 @@ func init() {
 	}
 
 	config = LoadConfig(DefaultConfigPath)
+
+	PreviewCmd.Flags().StringVar(&previewUser, "user", "", "The user whose repositories to search for preview")
 	rootCmd.AddCommand(PreviewCmd)
 }
+
+var previewUser string
 
 var PreviewCmd = &cobra.Command{
 	Use:    "preview [repo-name]",
@@ -99,7 +109,12 @@ var PreviewCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		repoName := args[0]
 
-		repos, err := GetRepos(User)
+		targetUser := previewUser
+		if targetUser == "" {
+			targetUser = User
+		}
+
+		repos, err := GetRepos(targetUser)
 		if err != nil {
 			fmt.Println("Error fetching repos for preview:", err)
 			return
