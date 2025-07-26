@@ -3,4 +3,14 @@
 
 # Show README content in the fzf preview pane
 # Default: false
-show_readme_in_preview: false
+show_readme_in_preview: true
+
+# Cache time-to-live settings
+# Supported units: m (minutes), h (hours), d (days)
+# Default: 24h for both
+
+# How long to cache repository lists
+repos_cache_ttl: 24h
+
+# How long to cache README files  
+readme_cache_ttl: 24h
