@@ -83,12 +83,10 @@ func init() {
 	rootCmd.Flags().StringVarP(&User, "user", "u", "", "The user to fetch repositories for.")
 	rootCmd.Flags().StringVarP(&configPath, "config", "c", DefaultConfigPath, "Path to configuration file.")
 
-	// Use PreRun to load config after flags are parsed
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		config = LoadConfig(configPath)
 	}
 
-	// Load default config for commands that don't trigger PreRun
 	config = LoadConfig(DefaultConfigPath)
 	rootCmd.AddCommand(PreviewCmd)
 }
@@ -100,6 +98,7 @@ var PreviewCmd = &cobra.Command{
 	Args:   cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		repoName := args[0]
+
 		repos, err := GetRepos(User)
 		if err != nil {
 			fmt.Println("Error fetching repos for preview:", err)

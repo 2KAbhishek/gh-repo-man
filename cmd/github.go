@@ -120,7 +120,6 @@ func ValidateUsername(username string) error {
 
 // GetRepos fetches repositories for a user with caching support
 func GetRepos(user string) ([]Repo, error) {
-	// Try to load from cache first
 	reposCacheTTL, err := ParseTTL(config.ReposCacheTTL)
 	if err != nil {
 		reposCacheTTL = 24 * time.Hour
@@ -133,7 +132,6 @@ func GetRepos(user string) ([]Repo, error) {
 		}
 	}
 
-	// Cache miss or invalid, fetch from API
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultContextTimeout)
 	defer cancel()
 	repos, err := GetReposWithContext(ctx, user)
@@ -141,7 +139,6 @@ func GetRepos(user string) ([]Repo, error) {
 		return nil, err
 	}
 
-	// Save to cache (ignore errors)
 	SaveReposToCache(user, repos)
 
 	return repos, nil
@@ -221,7 +218,6 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 
 	fmt.Printf("Cloning %d repositories with up to %d concurrent operations...\n", len(repos), MaxConcurrentClones)
 
-	// Create a semaphore to limit concurrent operations
 	sem := make(chan struct{}, MaxConcurrentClones)
 	errChan := make(chan error, len(repos))
 	var wg sync.WaitGroup
@@ -231,28 +227,24 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 		go func(i int, repo Repo) {
 			defer wg.Done()
 
-			// Acquire semaphore
 			select {
 			case sem <- struct{}{}:
 			case <-ctx.Done():
 				errChan <- fmt.Errorf("clone of %s cancelled: %w", repo.Name, ctx.Err())
 				return
 			}
-			defer func() { <-sem }() // Release semaphore
+			defer func() { <-sem }()
 
 			fmt.Printf("[%d/%d] %s Cloning %s...\n", i+1, len(repos), IconCloning, repo.Name)
 
-			// Create clone command with context
 			cmd := ExecCommand("git", "clone", repo.HTMLURL)
 
-			// Start the command so we can access cmd.Process
 			err := cmd.Start()
 			if err != nil {
 				errChan <- fmt.Errorf("failed to start clone for %s: %w", repo.Name, err)
 				return
 			}
 
-			// Set up context cancellation now that Process is available
 			go func() {
 				<-ctx.Done()
 				if cmd.Process != nil {
@@ -260,7 +252,6 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 				}
 			}()
 
-			// Wait for the command to complete
 			err = cmd.Wait()
 			if err != nil {
 				if ctx.Err() != nil {
@@ -280,13 +271,11 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 		}(i, repo)
 	}
 
-	// Wait for all goroutines to complete
 	go func() {
 		wg.Wait()
 		close(errChan)
 	}()
 
-	// Collect results
 	var firstError error
 	completedCount := 0
 	for err := range errChan {
@@ -305,14 +294,12 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 }
 
 func GetReadme(repoFullName string) (string, error) {
-	// Parse user and repo from repoFullName
 	parts := strings.Split(repoFullName, "/")
 	if len(parts) != 2 {
 		return "", fmt.Errorf("invalid repository name format: %s", repoFullName)
 	}
 	user, repoName := parts[0], parts[1]
 
-	// Try to load from cache first
 	readmeCacheTTL, err := ParseTTL(config.ReadmeCacheTTL)
 	if err != nil {
 		readmeCacheTTL = 24 * time.Hour
@@ -325,14 +312,12 @@ func GetReadme(repoFullName string) (string, error) {
 		}
 	}
 
-	// Cache miss or invalid, fetch from API
 	cmd := ExecCommand("gh", "api", fmt.Sprintf("repos/%s/readme", repoFullName), "-H", "Accept: application/vnd.github.v3.raw")
 	out, err := cmd.Output()
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
 			stderr := string(exitError.Stderr)
 			if exitError.ExitCode() == 1 && (strings.Contains(stderr, "Not Found") || strings.Contains(stderr, "404")) {
-				// Cache the empty result to avoid repeated 404s
 				SaveReadmeToCache(user, repoName, "")
 				return "", nil
 			}
@@ -342,7 +327,6 @@ func GetReadme(repoFullName string) (string, error) {
 	}
 
 	content := string(out)
-	// Save to cache (ignore errors)
 	SaveReadmeToCache(user, repoName, content)
 
 	return content, nil
