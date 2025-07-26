@@ -9,7 +9,9 @@ import (
 )
 
 type Config struct {
-	ShowReadmeInPreview bool `yaml:"show_readme_in_preview"`
+	ShowReadmeInPreview bool   `yaml:"show_readme_in_preview"`
+	ReposCacheTTL       string `yaml:"repos_cache_ttl"`
+	ReadmeCacheTTL      string `yaml:"readme_cache_ttl"`
 }
 
 const DefaultConfigPath = "~/.config/gh-repo-man.yml"
@@ -46,6 +48,8 @@ func LoadConfig(path string) Config {
 func getDefaultConfig() Config {
 	return Config{
 		ShowReadmeInPreview: false,
+		ReposCacheTTL:       "24h",
+		ReadmeCacheTTL:      "24h",
 	}
 }
 
@@ -63,5 +67,11 @@ func expandPath(path string) (string, error) {
 
 // validateConfig validates the configuration values
 func validateConfig(cfg Config) error {
+	if _, err := ParseTTL(cfg.ReposCacheTTL); err != nil {
+		return fmt.Errorf("invalid repos_cache_ttl: %w", err)
+	}
+	if _, err := ParseTTL(cfg.ReadmeCacheTTL); err != nil {
+		return fmt.Errorf("invalid readme_cache_ttl: %w", err)
+	}
 	return nil
 }
