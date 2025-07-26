@@ -96,10 +96,7 @@ var PreviewCmd = &cobra.Command{
 			return
 		}
 
-		// Get language icon
 		languageIcon := GetLanguageIcon(targetRepo.PrimaryLanguage.Name)
-
-		// Format repo info with icons
 		fmt.Printf("# %s\n\n%s Language: %s\n", targetRepo.Name, languageIcon, targetRepo.PrimaryLanguage.Name)
 
 		if targetRepo.Description != "" {
@@ -137,7 +134,7 @@ var PreviewCmd = &cobra.Command{
 			fmt.Printf("\n%s Topics: %s\n", IconTag, strings.Join(targetRepo.TopicNames(), ", "))
 		}
 
-		fmt.Print("\n---\n") // Horizontal line
+		fmt.Print("\n---\n")
 
 		readmeContent, err := GetReadme(targetRepo.Owner.Login + "/" + targetRepo.Name)
 		if err != nil {

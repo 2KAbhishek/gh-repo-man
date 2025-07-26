@@ -1,8 +1,6 @@
 package cmd
 
-// Unicode icons and symbols used throughout the application
 const (
-	// Repository info icons
 	IconStar     = "⭐"
 	IconFork     = "🍴"
 	IconWatch    = "👁"
@@ -14,8 +12,6 @@ const (
 	IconHome     = "🏠"
 	IconTag      = "🏷"
 	IconLink     = "🔗"
-
-	// Status indicators
 	IconForked   = "🍴"
 	IconArchived = "📦"
 	IconPrivate  = "🔒"
@@ -23,10 +19,8 @@ const (
 	IconSuccess  = "✅"
 	IconError    = "❌"
 	IconInfo     = "ℹ️"
-
-	// Progress indicators
-	IconCloning = "📥"
-	IconDone    = "✓"
+	IconCloning  = "📥"
+	IconDone     = "✓"
 )
 
 // Language icons mapping
@@ -54,10 +48,10 @@ var LanguageIcons = map[string]string{
 	"Markdown":   "📝",
 }
 
-// GetLanguageIcon returns the appropriate icon for a programming language
+// GetLanguageIcon returns the icon for a programming language
 func GetLanguageIcon(language string) string {
 	if icon, exists := LanguageIcons[language]; exists {
 		return icon
 	}
-	return "📁" // default folder icon
+	return "📁"
 }

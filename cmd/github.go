@@ -48,7 +48,7 @@ type Repo struct {
 	PrimaryLanguage Language  `json:"primaryLanguage"`
 }
 
-// TopicNames returns a slice of topic names from the repository topics
+// TopicNames extracts topic names as strings
 func (r *Repo) TopicNames() []string {
 	names := make([]string, len(r.Topics))
 	for i, topic := range r.Topics {
@@ -57,7 +57,7 @@ func (r *Repo) TopicNames() []string {
 	return names
 }
 
-// BuildRepoMap creates a map for efficient repository lookup by name
+// BuildRepoMap creates a name-to-repo lookup map
 func BuildRepoMap(repos []Repo) map[string]Repo {
 	repoMap := make(map[string]Repo, len(repos))
 	for _, repo := range repos {
@@ -66,7 +66,7 @@ func BuildRepoMap(repos []Repo) map[string]Repo {
 	return repoMap
 }
 
-// SelectReposByNames efficiently selects repositories by their names using a map lookup
+// SelectReposByNames filters repositories by name using map lookup
 func SelectReposByNames(repoMap map[string]Repo, selectedNames []string) []Repo {
 	var selectedRepos []Repo
 	for _, name := range selectedNames {
@@ -79,36 +79,26 @@ func SelectReposByNames(repoMap map[string]Repo, selectedNames []string) []Repo 
 	return selectedRepos
 }
 
-// Constants for GitHub API and validation
 const (
-	// JSON fields to request from GitHub API
-	JSONFields = "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage"
-
-	// Default limit for repository listing
-	DefaultRepoLimit = "1000"
-
-	// GitHub username constraints
-	MaxUsernameLength = 39 // GitHub's maximum username length
-	MinUsernameLength = 1  // GitHub's minimum username length
-
-	// Cloning configuration
-	MaxConcurrentClones   = 3               // Maximum number of concurrent clone operations
-	CloneTimeoutMinutes   = 10              // Timeout for individual clone operations
-	DefaultContextTimeout = 5 * time.Minute // Default timeout for operations
+	JSONFields            = "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage"
+	DefaultRepoLimit      = "1000"
+	MaxUsernameLength     = 39
+	MinUsernameLength     = 1
+	MaxConcurrentClones   = 3
+	CloneTimeoutMinutes   = 10
+	DefaultContextTimeout = 5 * time.Minute
 )
 
-// Username validation regex - allows alphanumeric, hyphens, and underscores
 var usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-_]*[a-zA-Z0-9])?$`)
 
 var ExecCommand = exec.Command
 
-// ValidateUsername validates that a username is safe and follows GitHub username rules
+// ValidateUsername ensures username is safe and follows GitHub rules
 func ValidateUsername(username string) error {
 	if username == "" {
-		return nil // empty username is valid (means current user)
+		return nil
 	}
 
-	// Check length constraints
 	if len(username) > MaxUsernameLength {
 		return fmt.Errorf("username too long: maximum %d characters allowed", MaxUsernameLength)
 	}
@@ -117,14 +107,10 @@ func ValidateUsername(username string) error {
 		return fmt.Errorf("username too short: minimum %d character required", MinUsernameLength)
 	}
 
-	// Check for shell metacharacters that could be dangerous for command injection
 	if strings.ContainsAny(username, ";|&$`(){}[]<>\"'\\") {
 		return fmt.Errorf("username contains invalid characters that could be unsafe")
 	}
 
-	// Check GitHub username format rules:
-	// - Must start and end with alphanumeric character
-	// - Can contain hyphens and underscores in the middle
 	if !usernameRegex.MatchString(username) {
 		return fmt.Errorf("username format is invalid: must start and end with alphanumeric character, may contain hyphens and underscores")
 	}
@@ -139,27 +125,31 @@ func GetRepos(user string) ([]Repo, error) {
 	return GetReposWithContext(ctx, user)
 }
 
-// GetReposWithContext fetches repositories for a user with context support for cancellation
-func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
-	// Validate username input
-	if err := ValidateUsername(user); err != nil {
-		return nil, fmt.Errorf("invalid username: %w", err)
-	}
-
-	// Build command arguments
+func buildRepoListArgs(user string) []string {
 	args := []string{"repo", "list"}
 	if user != "" {
 		args = append(args, user)
 	} else {
 		args = append(args, "--limit", DefaultRepoLimit)
 	}
-	args = append(args, "--json", JSONFields)
+	return append(args, "--json", JSONFields)
+}
 
-	// For now, use a simpler approach without the Cancel field
-	// TODO: Implement proper context cancellation for commands
-	cmd := ExecCommand("gh", args...)
+func getUserContext(user string) string {
+	if user != "" {
+		return fmt.Sprintf("user '%s'", user)
+	}
+	return "current user"
+}
 
-	// Start the command and wait for completion or context cancellation
+// GetReposWithContext fetches repositories with context support for cancellation
+func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
+	if err := ValidateUsername(user); err != nil {
+		return nil, fmt.Errorf("invalid username: %w", err)
+	}
+
+	cmd := ExecCommand("gh", buildRepoListArgs(user)...)
+
 	type result struct {
 		output []byte
 		err    error
@@ -173,7 +163,6 @@ func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
 
 	select {
 	case <-ctx.Done():
-		// Try to kill the process if it exists
 		if cmd.Process != nil {
 			cmd.Process.Kill()
 		}
@@ -181,11 +170,7 @@ func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
 	case res := <-resultChan:
 		if res.err != nil {
 			if exitError, ok := res.err.(*exec.ExitError); ok {
-				userContext := "current user"
-				if user != "" {
-					userContext = fmt.Sprintf("user '%s'", user)
-				}
-				return nil, fmt.Errorf("failed to fetch repositories for %s: %s", userContext, string(exitError.Stderr))
+				return nil, fmt.Errorf("failed to fetch repositories for %s: %s", getUserContext(user), string(exitError.Stderr))
 			}
 			return nil, fmt.Errorf("failed to execute gh repo list command: %w", res.err)
 		}
