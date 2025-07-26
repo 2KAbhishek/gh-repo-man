@@ -15,7 +15,6 @@ func TestValidateUsername(t *testing.T) {
 		wantErr  bool
 		errMsg   string
 	}{
-		// Valid usernames
 		{
 			name:     "empty username (current user)",
 			username: "",
@@ -52,7 +51,6 @@ func TestValidateUsername(t *testing.T) {
 			wantErr:  false,
 		},
 
-		// Invalid usernames - length
 		{
 			name:     "too long username",
 			username: strings.Repeat("a", cmd.MaxUsernameLength+1),
@@ -60,7 +58,6 @@ func TestValidateUsername(t *testing.T) {
 			errMsg:   "username too long",
 		},
 
-		// Invalid usernames - dangerous characters
 		{
 			name:     "username with semicolon",
 			username: "user;rm-rf",
@@ -128,7 +125,6 @@ func TestValidateUsername(t *testing.T) {
 			errMsg:   "contains invalid characters",
 		},
 
-		// Invalid usernames - format
 		{
 			name:     "username starting with hyphen",
 			username: "-user",
@@ -168,7 +164,7 @@ func TestValidateUsername(t *testing.T) {
 		{
 			name:     "username with multiple consecutive hyphens",
 			username: "user--name",
-			wantErr:  false, // This is actually valid in GitHub
+			wantErr:  false,
 		},
 	}
 
@@ -195,16 +191,14 @@ func TestValidateUsername(t *testing.T) {
 }
 
 func TestGetReposWithValidation(t *testing.T) {
-	// Test that GetRepos properly validates usernames
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
 
 	// Don't actually execute commands in this test
 	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
-		return nil // This will cause an error, but we're testing validation first
+		return nil
 	}
 
-	// Test invalid username
 	_, err := cmd.GetRepos("user;rm-rf")
 	if err == nil {
 		t.Error("GetRepos with invalid username should return validation error")

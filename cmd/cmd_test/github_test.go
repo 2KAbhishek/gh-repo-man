@@ -18,14 +18,12 @@ func TestHelperProcess(t *testing.T) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
 		return
 	}
-	switch os.Args[3] { // This is the actual command being mocked (e.g., "gh", "git", "fzf", "gh-repo-manager")
+	switch os.Args[3] {
 	case "gh":
 		if os.Args[4] == "repo" && os.Args[5] == "list" {
-			// gh repo list [user] --limit 1000 --json ...
-			// Check if a user is provided. The user would be at os.Args[6] if present, otherwise --limit is at os.Args[6]
-			if len(os.Args) > 6 && os.Args[6] != "--limit" { // User is provided
+			if len(os.Args) > 6 && os.Args[6] != "--limit" {
 				fmt.Fprintf(os.Stdout, `[{"name":"userRepo1","description":"userDesc1","url":"https://github.com/user/userRepo1","stargazerCount":10,"forkCount":5,"watchers":{"totalCount":3},"issues":{"totalCount":2},"owner":{"login":"user"},"createdAt":"2023-01-01T00:00:00Z","updatedAt":"2023-01-02T00:00:00Z","diskUsage":100,"homepageUrl":"https://user.github.io/userRepo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[{"name":"go"},{"name":"cli"}],"primaryLanguage":{"name":"Go"}}]`)
-			} else { // No user provided
+			} else {
 				fmt.Fprintf(os.Stdout, `[{"name":"repo1","description":"desc1","url":"https://github.com/user/repo1","stargazerCount":100,"forkCount":50,"watchers":{"totalCount":30},"issues":{"totalCount":20},"owner":{"login":"user"},"createdAt":"2022-01-01T00:00:00Z","updatedAt":"2022-01-02T00:00:00Z","diskUsage":1000,"homepageUrl":"https://user.github.io/repo1","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[{"name":"go"},{"name":"cli"}],"primaryLanguage":{"name":"Go"}},{"name":"repo2","description":"desc2","url":"https://github.com/user/repo2","stargazerCount":200,"forkCount":100,"watchers":{"totalCount":60},"issues":{"totalCount":40},"owner":{"login":"user"},"createdAt":"2022-03-01T00:00:00Z","updatedAt":"2022-03-02T00:00:00Z","diskUsage":2000,"homepageUrl":"","isFork":false,"isArchived":false,"isPrivate":false,"isTemplate":false,"repositoryTopics":[],"primaryLanguage":{"name":"Python"}}]`)
 			}
 		} else if os.Args[4] == "api" && strings.HasPrefix(os.Args[5], "repos/") && strings.HasSuffix(os.Args[5], "/readme") {
@@ -35,7 +33,6 @@ func TestHelperProcess(t *testing.T) {
 			} else if repoFullName == "user/userRepo1" {
 				fmt.Fprint(os.Stdout, "# UserRepo1 Readme\n\nThis is the readme content for userRepo1.")
 			} else {
-				// Simulate 404 for other readmes
 				fmt.Fprint(os.Stderr, "Not Found")
 				os.Exit(1)
 			}
@@ -51,7 +48,7 @@ func TestHelperProcess(t *testing.T) {
 	case "fzf":
 		fmt.Fprint(os.Stdout, "repo1\n")
 	case "gh-repo-manager":
-		if os.Args[4] == "preview" && len(os.Args) > 5 { // os.Args[5] should be the repo name
+		if os.Args[4] == "preview" && len(os.Args) > 5 {
 			repoName := os.Args[5]
 			if repoName == "repo1" {
 				fmt.Printf("# %s\n\n%s Language: %s\n", repoName, "Git", "Go")
@@ -84,7 +81,6 @@ func TestHelperProcess(t *testing.T) {
 			}
 		}
 	case "sleep":
-		// For timeout testing - sleep for a long time to trigger context cancellation
 		time.Sleep(15 * time.Second)
 	}
 	os.Exit(0)
@@ -190,12 +186,10 @@ func TestFzfIntegration(t *testing.T) {
 		t.Errorf("previewCmd output mismatch\nGot: %q\nWant: %q", buf.String(), expectedOutput)
 	}
 
-	// Test with a user repo
 	oldStdout = os.Stdout
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 
-	// Set the user for the GetRepos call within the previewCmd
 	oldUser := cmd.User
 	cmd.User = "someuser"
 
@@ -203,7 +197,7 @@ func TestFzfIntegration(t *testing.T) {
 
 	w.Close()
 	os.Stdout = oldStdout
-	cmd.User = oldUser // Restore user
+	cmd.User = oldUser
 
 	buf.Reset()
 	buf.ReadFrom(r)

@@ -12,9 +12,7 @@ import (
 	"github.com/2KAbhishek/gh-repo-manager/cmd"
 )
 
-
 func TestGetReposWithContext(t *testing.T) {
-	// Mock the exec command
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
 
@@ -40,12 +38,10 @@ func TestGetReposWithContext(t *testing.T) {
 }
 
 func TestGetReposWithContextCancellation(t *testing.T) {
-	// Mock the exec command to simulate a long-running operation
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
 
 	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
-		// Create a command that will run for a while
 		cmd := exec.Command("sleep", "10")
 		return cmd
 	}
@@ -64,12 +60,10 @@ func TestGetReposWithContextCancellation(t *testing.T) {
 }
 
 func TestCloneReposWithContext(t *testing.T) {
-	// Mock the exec command
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
 
 	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
-		// Use the helper process pattern for all commands
 		cs := []string{"-test.run=TestHelperProcess", "--", command}
 		cs = append(cs, args...)
 		cmd := exec.Command(os.Args[0], cs...)
@@ -90,18 +84,14 @@ func TestCloneReposWithContext(t *testing.T) {
 	if err != nil {
 		t.Errorf("CloneReposWithContext() returned error: %v", err)
 	}
-
-	// If no error occurred, the test passes as the cloning was successful
 }
 
 func TestCloneReposWithContextCancellation(t *testing.T) {
-	// Mock the exec command to simulate long-running clones
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
 
 	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
 		if command == "git" && len(args) >= 2 && args[0] == "clone" {
-			// Simulate a long-running git clone by sleeping for a very long time
 			return exec.Command("sleep", "30")
 		}
 		cs := []string{"-test.run=TestHelperProcess", "--", command}
