@@ -237,18 +237,18 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 
 			fmt.Printf("[%d/%d] %s Cloning %s...\n", i+1, len(repos), IconCloning, repo.Name)
 
-			projectsDir, err := GetProjectsDir()
+			targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
 			if err != nil {
-				errChan <- fmt.Errorf("failed to get projects directory: %w", err)
+				errChan <- fmt.Errorf("failed to get target directory: %w", err)
 				return
 			}
 
-			if err := os.MkdirAll(projectsDir, 0755); err != nil {
-				errChan <- fmt.Errorf("failed to create projects directory: %w", err)
+			if err := os.MkdirAll(targetDir, 0755); err != nil {
+				errChan <- fmt.Errorf("failed to create target directory: %w", err)
 				return
 			}
 
-			targetPath := filepath.Join(projectsDir, repo.Name)
+			targetPath := filepath.Join(targetDir, repo.Name)
 			sshURL := ConvertToSSHURL(repo.HTMLURL)
 			cmd := ExecCommand("git", "clone", sshURL, targetPath)
 
@@ -279,7 +279,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 				return
 			}
 
-			fmt.Printf("[%d/%d] %s Successfully cloned %s\n", i+1, len(repos), IconSuccess, repo.Name)
+			fmt.Printf("[%d/%d] %s Successfully cloned %s to %s\n", i+1, len(repos), IconSuccess, repo.Name, targetPath)
 			errChan <- nil
 		}(i, repo)
 	}
