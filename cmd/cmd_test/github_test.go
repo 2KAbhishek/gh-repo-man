@@ -112,6 +112,12 @@ func TestHelperProcess(t *testing.T) {
 		handleFzfCommand()
 	case "gh-repo-manager":
 		handleGhRepoManagerCommand()
+	case "which":
+		handleWhichCommand()
+	case "tea":
+		handleTeaCommand()
+	case "nvim", "vim", "code":
+		handleEditorCommand()
 	case "sleep":
 		time.Sleep(15 * time.Second)
 	}
@@ -200,6 +206,24 @@ func printMockPreview(name, desc, url string, stars, forks, watchers, issues int
 	fmt.Printf("\n🏷 Topics: %s\n", topics)
 	fmt.Print("\n---\n")
 	fmt.Println(readme)
+}
+
+func handleWhichCommand() {
+	if len(os.Args) > 4 && os.Args[4] == "tea" {
+		if os.Getenv("MOCK_TEA_AVAILABLE") == "true" {
+			os.Exit(0)
+		}
+		os.Exit(1)
+	}
+	os.Exit(1)
+}
+
+func handleTeaCommand() {
+	os.Exit(0)
+}
+
+func handleEditorCommand() {
+	os.Exit(0)
 }
 
 func TestGetRepos(t *testing.T) {
