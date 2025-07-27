@@ -13,6 +13,7 @@ type Config struct {
 	ReposCacheTTL       string `yaml:"repos_cache_ttl"`
 	ReadmeCacheTTL      string `yaml:"readme_cache_ttl"`
 	UsernameCacheTTL    string `yaml:"username_cache_ttl"`
+	ProjectsDir         string `yaml:"projects_dir"`
 }
 
 const DefaultConfigPath = "~/.config/gh-repo-man.yml"
@@ -52,6 +53,7 @@ func getDefaultConfig() Config {
 		ReposCacheTTL:       "24h",
 		ReadmeCacheTTL:      "24h",
 		UsernameCacheTTL:    "90d",
+		ProjectsDir:         "~/Projects",
 	}
 }
 
@@ -78,5 +80,13 @@ func validateConfig(cfg Config) error {
 	if _, err := ParseTTL(cfg.UsernameCacheTTL); err != nil {
 		return fmt.Errorf("invalid username_cache_ttl: %w", err)
 	}
+	if _, err := expandPath(cfg.ProjectsDir); err != nil {
+		return fmt.Errorf("invalid projects_dir: %w", err)
+	}
 	return nil
+}
+
+// GetProjectsDir returns the expanded projects directory path
+func GetProjectsDir() (string, error) {
+	return expandPath(config.ProjectsDir)
 }
