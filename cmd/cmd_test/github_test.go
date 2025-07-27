@@ -120,6 +120,8 @@ func handleGhCommand() {
 		} else {
 			fmt.Fprintf(os.Stdout, "[%s,%s]", mockRepo1JSON, mockRepo2JSON)
 		}
+	} else if os.Args[4] == "api" && os.Args[5] == "user" {
+		fmt.Fprint(os.Stdout, `{"login":"testuser"}`)
 	} else if os.Args[4] == "api" && strings.HasPrefix(os.Args[5], "repos/") && strings.HasSuffix(os.Args[5], "/readme") {
 		repoFullName := strings.TrimSuffix(strings.TrimPrefix(os.Args[5], "repos/"), "/readme")
 		switch repoFullName {
