@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -235,9 +237,22 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 
 			fmt.Printf("[%d/%d] %s Cloning %s...\n", i+1, len(repos), IconCloning, repo.Name)
 
-			cmd := ExecCommand("git", "clone", repo.HTMLURL)
+			projectsDir, err := GetProjectsDir()
+			if err != nil {
+				errChan <- fmt.Errorf("failed to get projects directory: %w", err)
+				return
+			}
 
-			err := cmd.Start()
+			if err := os.MkdirAll(projectsDir, 0755); err != nil {
+				errChan <- fmt.Errorf("failed to create projects directory: %w", err)
+				return
+			}
+
+			targetPath := filepath.Join(projectsDir, repo.Name)
+			sshURL := ConvertToSSHURL(repo.HTMLURL)
+			cmd := ExecCommand("git", "clone", sshURL, targetPath)
+
+			err = cmd.Start()
 			if err != nil {
 				errChan <- fmt.Errorf("failed to start clone for %s: %w", repo.Name, err)
 				return
