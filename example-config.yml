@@ -7,10 +7,26 @@ show_readme_in_preview: true
 
 # Cache time-to-live settings
 # Supported units: m (minutes), h (hours), d (days)
-# Default: 24h for both
 
 # How long to cache repository lists
+# Default: 24h
 repos_cache_ttl: 24h
 
 # How long to cache README files  
+# Default: 24h
 readme_cache_ttl: 24h
+
+# How long to cache usernames
+# Default: 90d
+username_cache_ttl: 90d
+
+# Directory where repositories will be cloned
+# Supports ~ expansion for home directory
+# Default: ~/Projects
+projects_dir: ~/Projects
+
+# Organize repositories by username in subdirectories
+# When enabled: ~/Projects/username/repo-name
+# When disabled: ~/Projects/repo-name
+# Default: true
+per_user_dir: true
