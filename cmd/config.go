@@ -12,6 +12,7 @@ type Config struct {
 	ShowReadmeInPreview bool   `yaml:"show_readme_in_preview"`
 	ReposCacheTTL       string `yaml:"repos_cache_ttl"`
 	ReadmeCacheTTL      string `yaml:"readme_cache_ttl"`
+	UsernameCacheTTL    string `yaml:"username_cache_ttl"`
 }
 
 const DefaultConfigPath = "~/.config/gh-repo-man.yml"
@@ -50,6 +51,7 @@ func getDefaultConfig() Config {
 		ShowReadmeInPreview: false,
 		ReposCacheTTL:       "24h",
 		ReadmeCacheTTL:      "24h",
+		UsernameCacheTTL:    "90d",
 	}
 }
 
@@ -72,6 +74,9 @@ func validateConfig(cfg Config) error {
 	}
 	if _, err := ParseTTL(cfg.ReadmeCacheTTL); err != nil {
 		return fmt.Errorf("invalid readme_cache_ttl: %w", err)
+	}
+	if _, err := ParseTTL(cfg.UsernameCacheTTL); err != nil {
+		return fmt.Errorf("invalid username_cache_ttl: %w", err)
 	}
 	return nil
 }
