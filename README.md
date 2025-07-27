@@ -121,8 +121,8 @@ Planning to add repository management features like creating, archiving, and upd
 - [x] Previews are not working for non current user repos, also not all the repos are loading, fix that
 - [x] Current user repo cache is being saved as current_user_repos.json instead of the actual user's name.json, fix it
 - [x] Add configuration option for projects directory, if configured, clone repos to that directory
-- [ ] Add configuration option for per_user_dir, if configured, create a directory for each user in projects dir and clone repos to that directory
-- [ ] Add repository filtering and sorting capabilities, match it with what https://github.com/2kabhishek/octohub.nvim is providing
+- [x] Add configuration option for per_user_dir, if configured, create a directory for each user in projects dir and clone repos to that directory
+- [x] Add repository filtering and sorting capabilities, match it with what https://github.com/2kabhishek/octohub.nvim is providing
 - [ ] Open repos with `tea` or `code` or user's preferred editor
 
 ### Tech Debt
