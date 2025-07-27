@@ -250,6 +250,11 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 			}
 
 			targetPath := filepath.Join(targetDir, repo.Name)
+			if _, err := os.Stat(targetPath); err == nil {
+				fmt.Printf("[%d/%d] %s %s already exists in %s, skipping clone\n", i+1, len(repos), IconInfo, repo.Name, targetPath)
+				return
+			}
+
 			sshURL := ConvertToSSHURL(repo.HTMLURL)
 			cmd := ExecCommand("git", "clone", sshURL, targetPath)
 
