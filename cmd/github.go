@@ -312,6 +312,18 @@ func GetCurrentUsername() (string, error) {
 	return user.Login, nil
 }
 
+// ConvertToSSHURL converts an HTTPS GitHub URL to SSH format
+func ConvertToSSHURL(httpsURL string) string {
+	if strings.HasPrefix(httpsURL, "https://github.com/") {
+		path := strings.TrimPrefix(httpsURL, "https://github.com/")
+		if !strings.HasSuffix(path, ".git") {
+			path = path + ".git"
+		}
+		return "git@github.com:" + path
+	}
+	return httpsURL
+}
+
 func GetReadme(repoFullName string) (string, error) {
 	parts := strings.Split(repoFullName, "/")
 	if len(parts) != 2 {
