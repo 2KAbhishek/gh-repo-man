@@ -75,11 +75,16 @@ func LoadReposFromCache(user string) ([]Repo, error) {
 		return nil, err
 	}
 
-	filename := fmt.Sprintf("%s_repos.json", user)
+	actualUser := user
 	if user == "" {
-		filename = "current_user_repos.json"
+		cachedUser, err := GetCachedCurrentUsername()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get current username: %w", err)
+		}
+		actualUser = cachedUser
 	}
 
+	filename := fmt.Sprintf("%s_repos.json", actualUser)
 	filePath := filepath.Join(cacheDir, filename)
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -100,11 +105,16 @@ func SaveReposToCache(user string, repos []Repo) error {
 		return err
 	}
 
-	filename := fmt.Sprintf("%s_repos.json", user)
+	actualUser := user
 	if user == "" {
-		filename = "current_user_repos.json"
+		currentUser, err := GetCachedCurrentUsername()
+		if err != nil {
+			return fmt.Errorf("failed to get current username: %w", err)
+		}
+		actualUser = currentUser
 	}
 
+	filename := fmt.Sprintf("%s_repos.json", actualUser)
 	filePath := filepath.Join(cacheDir, filename)
 	data, err := json.MarshalIndent(repos, "", "  ")
 	if err != nil {
@@ -116,6 +126,38 @@ func SaveReposToCache(user string, repos []Repo) error {
 	}
 
 	return nil
+}
+
+// GetCachedCurrentUsername gets the current username with caching
+func GetCachedCurrentUsername() (string, error) {
+	cacheDir, err := GetCacheDir()
+	if err != nil {
+		return "", err
+	}
+
+	usernameCachePath := filepath.Join(cacheDir, "current_username.txt")
+	usernameCacheTTL, err := ParseTTL(config.UsernameCacheTTL)
+	if err != nil {
+		usernameCacheTTL = 90 * 24 * time.Hour
+	}
+
+	if IsCacheValid(usernameCachePath, usernameCacheTTL) {
+		data, err := os.ReadFile(usernameCachePath)
+		if err == nil && len(data) > 0 {
+			return strings.TrimSpace(string(data)), nil
+		}
+	}
+
+	username, err := GetCurrentUsername()
+	if err != nil {
+		return "", err
+	}
+
+	if err := os.WriteFile(usernameCachePath, []byte(username), 0644); err != nil {
+		return username, nil
+	}
+
+	return username, nil
 }
 
 func LoadReadmeFromCache(user, repoName string) (string, error) {
@@ -157,11 +199,16 @@ func getReposCachePath(user string) (string, error) {
 		return "", err
 	}
 
-	filename := fmt.Sprintf("%s_repos.json", user)
+	actualUser := user
 	if user == "" {
-		filename = "current_user_repos.json"
+		cachedUser, err := GetCachedCurrentUsername()
+		if err != nil {
+			return "", fmt.Errorf("failed to get current username: %w", err)
+		}
+		actualUser = cachedUser
 	}
 
+	filename := fmt.Sprintf("%s_repos.json", actualUser)
 	return filepath.Join(cacheDir, filename), nil
 }
 
