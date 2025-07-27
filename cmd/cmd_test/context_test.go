@@ -18,6 +18,7 @@ func setupEnv(t *testing.T) {
 
 	cmd.SetConfig(cmd.Config{
 		ProjectsDir: "~/Projects",
+		PerUserDir:  true,
 	})
 }
 

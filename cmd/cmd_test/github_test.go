@@ -59,6 +59,7 @@ func setupMockTest(t *testing.T) *mockTestSetup {
 
 	cmd.SetConfig(cmd.Config{
 		ProjectsDir: "~/Projects",
+		PerUserDir:  true,
 	})
 
 	originalExecCmd := cmd.ExecCommand
