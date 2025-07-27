@@ -19,6 +19,9 @@ func SetConfig(cfg Config) {
 }
 
 var User string
+var RepoType string
+var LanguageFilter string
+var SortBy string
 
 var rootCmd = &cobra.Command{
 	Use:   "gh-repo-manager",
@@ -30,8 +33,11 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		filteredRepos := FilterRepositories(repos, RepoType, LanguageFilter)
+		sortedRepos := SortRepositories(filteredRepos, SortBy)
+
 		var repoNames []string
-		for _, repo := range repos {
+		for _, repo := range sortedRepos {
 			repoNames = append(repoNames, repo.Name)
 		}
 
@@ -61,7 +67,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		selectedNames := strings.Split(strings.TrimSpace(out.String()), "\n")
-		repoMap := BuildRepoMap(repos)
+		repoMap := BuildRepoMap(sortedRepos)
 		selectedRepos := SelectReposByNames(repoMap, selectedNames)
 
 		if len(selectedRepos) > 0 {
@@ -88,6 +94,9 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringVarP(&User, "user", "u", "", "The user to fetch repositories for.")
 	rootCmd.Flags().StringVarP(&configPath, "config", "c", DefaultConfigPath, "Path to configuration file.")
+	rootCmd.Flags().StringVarP(&RepoType, "type", "t", "", "Filter by repository type (archived, forked, private, template)")
+	rootCmd.Flags().StringVarP(&LanguageFilter, "language", "l", "", "Filter by primary language")
+	rootCmd.Flags().StringVarP(&SortBy, "sort", "s", "", "Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)")
 
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		config = LoadConfig(configPath)
