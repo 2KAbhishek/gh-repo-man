@@ -12,6 +12,15 @@ import (
 	"github.com/2KAbhishek/gh-repo-manager/cmd"
 )
 
+func setupEnv(t *testing.T) {
+	env := setupTempHome(t)
+	defer env.cleanup()
+
+	cmd.SetConfig(cmd.Config{
+		ProjectsDir: "~/Projects",
+	})
+}
+
 func TestGetReposWithContext(t *testing.T) {
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
@@ -60,6 +69,7 @@ func TestGetReposWithContextCancellation(t *testing.T) {
 }
 
 func TestCloneReposWithContext(t *testing.T) {
+	setupEnv(t)
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
 
@@ -87,6 +97,8 @@ func TestCloneReposWithContext(t *testing.T) {
 }
 
 func TestCloneReposWithContextCancellation(t *testing.T) {
+	setupEnv(t)
+
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
 
@@ -130,6 +142,8 @@ func TestCloneReposEmptyList(t *testing.T) {
 }
 
 func TestConcurrentCloning(t *testing.T) {
+	setupEnv(t)
+
 	originalExecCommand := cmd.ExecCommand
 	defer func() { cmd.ExecCommand = originalExecCommand }()
 
