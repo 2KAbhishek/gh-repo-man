@@ -57,6 +57,10 @@ type mockTestSetup struct {
 func setupMockTest(t *testing.T) *mockTestSetup {
 	env := setupTempHome(t)
 
+	cmd.SetConfig(cmd.Config{
+		ProjectsDir: "~/Projects",
+	})
+
 	originalExecCmd := cmd.ExecCommand
 	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
 		cs := []string{"-test.run=TestHelperProcess", "--", command}
@@ -118,13 +122,13 @@ func handleGhCommand() {
 		hasUsername := false
 		for i := 6; i < len(os.Args); i++ {
 			arg := os.Args[i]
-			if arg != "--limit" && arg != "1000" && arg != "--json" && 
-			   arg != "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage" {
+			if arg != "--limit" && arg != "1000" && arg != "--json" &&
+				arg != "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage" {
 				hasUsername = true
 				break
 			}
 		}
-		
+
 		if hasUsername {
 			fmt.Fprintf(os.Stdout, "[%s]", mockUserRepo1JSON)
 		} else {
