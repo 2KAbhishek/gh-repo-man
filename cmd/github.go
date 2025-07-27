@@ -293,6 +293,27 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 	return nil
 }
 
+// GetCurrentUsername fetches the current authenticated user's username
+func GetCurrentUsername() (string, error) {
+	cmd := ExecCommand("gh", "api", "user")
+	out, err := cmd.Output()
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return "", fmt.Errorf("gh api user failed: %s", string(exitError.Stderr))
+		}
+		return "", fmt.Errorf("failed to execute gh api user command: %w", err)
+	}
+
+	var user struct {
+		Login string `json:"login"`
+	}
+	if err := json.Unmarshal(out, &user); err != nil {
+		return "", fmt.Errorf("failed to parse user API response: %w", err)
+	}
+
+	return user.Login, nil
+}
+
 func GetReadme(repoFullName string) (string, error) {
 	parts := strings.Split(repoFullName, "/")
 	if len(parts) != 2 {
