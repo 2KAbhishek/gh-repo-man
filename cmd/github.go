@@ -335,8 +335,8 @@ func GetCurrentUsername() (string, error) {
 
 // ConvertToSSHURL converts an HTTPS GitHub URL to SSH format
 func ConvertToSSHURL(httpsURL string) string {
-	if strings.HasPrefix(httpsURL, "https://github.com/") {
-		path := strings.TrimPrefix(httpsURL, "https://github.com/")
+	if after, ok := strings.CutPrefix(httpsURL, "https://github.com/"); ok {
+		path := after
 		if !strings.HasSuffix(path, ".git") {
 			path = path + ".git"
 		}
@@ -415,7 +415,7 @@ func FilterRepositories(repos []Repo, repoType, language string) []Repo {
 			}
 		}
 
-		if language != "" && strings.ToLower(repo.PrimaryLanguage.Name) != strings.ToLower(language) {
+		if language != "" && !strings.EqualFold(repo.PrimaryLanguage.Name, language) {
 			continue
 		}
 
