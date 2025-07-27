@@ -466,3 +466,81 @@ func SortRepositories(repos []Repo, sortBy string) []Repo {
 
 	return sorted
 }
+
+// HandlePostClone handles post-cloning actions (tea integration or editor fallback)
+func HandlePostClone(repos []Repo) error {
+	if len(repos) == 0 {
+		return nil
+	}
+
+	if config.TeaIntegration && IsTeaAvailable() {
+		return OpenWithTea(repos)
+	}
+
+	return OpenWithEditor(repos)
+}
+
+// IsTeaAvailable checks if tea command is available in PATH
+func IsTeaAvailable() bool {
+	cmd := ExecCommand("which", "tea")
+	err := cmd.Run()
+	return err == nil
+}
+
+// OpenWithTea opens repositories using tea tmux session manager
+func OpenWithTea(repos []Repo) error {
+	var paths []string
+	for _, repo := range repos {
+		targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
+		if err != nil {
+			return fmt.Errorf("failed to get target directory for %s: %w", repo.Name, err)
+		}
+		repoPath := filepath.Join(targetDir, repo.Name)
+		paths = append(paths, repoPath)
+	}
+
+	if len(paths) == 0 {
+		return nil
+	}
+
+	fmt.Printf("🍵 Opening %d repositories with tea...\n", len(repos))
+
+	args := append([]string{"--projects"}, paths...)
+	cmd := ExecCommand("tea", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	return cmd.Run()
+}
+
+// OpenWithEditor opens repositories with the configured editor
+func OpenWithEditor(repos []Repo) error {
+	if config.Editor == "" {
+		fmt.Println("No editor configured, skipping post-clone editor opening.")
+		return nil
+	}
+
+	fmt.Printf("📝 Opening %d repositories with %s...\n", len(repos), config.Editor)
+
+	for _, repo := range repos {
+		targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
+		if err != nil {
+			return fmt.Errorf("failed to get target directory for %s: %w", repo.Name, err)
+		}
+		repoPath := filepath.Join(targetDir, repo.Name)
+
+		fmt.Printf("Opening %s in %s\n", repo.Name, config.Editor)
+		cmd := ExecCommand(config.Editor, repoPath)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Stdin = os.Stdin
+
+		err = cmd.Run()
+		if err != nil {
+			fmt.Printf("Warning: Failed to open %s with %s: %v\n", repo.Name, config.Editor, err)
+		}
+	}
+
+	return nil
+}
