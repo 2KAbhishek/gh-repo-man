@@ -30,3 +30,13 @@ projects_dir: ~/Projects
 # When disabled: ~/Projects/repo-name
 # Default: true
 per_user_dir: true
+
+# Enable tea integration for tmux session management
+# When enabled and tea is available, opens cloned repos with tea
+# Default: true
+tea_integration: true
+
+# Editor to use when tea is not available or disabled
+# Falls back to $EDITOR environment variable, then nvim
+# Default: $EDITOR or nvim
+editor: nvim
