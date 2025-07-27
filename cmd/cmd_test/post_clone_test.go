@@ -82,8 +82,8 @@ func TestHandlePostClone(t *testing.T) {
 			t.Errorf("Expected first command to be 'which tea', got %v", executedCommands[0])
 		}
 
-		if executedCommands[1][0] != "tea" || executedCommands[1][1] != "--projects" {
-			t.Errorf("Expected tea command with --projects, got %v", executedCommands[1])
+		if executedCommands[1][0] != "tea" {
+			t.Errorf("Expected tea command, got %v", executedCommands[1])
 		}
 
 		expectedPaths := []string{
@@ -92,8 +92,8 @@ func TestHandlePostClone(t *testing.T) {
 		}
 
 		for i, expectedPath := range expectedPaths {
-			if len(executedCommands[1]) <= i+2 || executedCommands[1][i+2] != expectedPath {
-				t.Errorf("Expected path %s at position %d, got %s", expectedPath, i, executedCommands[1][i+2])
+			if len(executedCommands[1]) <= i+1 || executedCommands[1][i+1] != expectedPath {
+				t.Errorf("Expected path %s at position %d, got %s", expectedPath, i+1, executedCommands[1][i+1])
 			}
 		}
 	})
@@ -229,8 +229,8 @@ func TestOpenWithTea(t *testing.T) {
 		t.Errorf("OpenWithTea() returned error: %v", err)
 	}
 
-	if executedCommand[0] != "tea" || executedCommand[1] != "--projects" {
-		t.Errorf("Expected 'tea --projects', got %v", executedCommand[:2])
+	if executedCommand[0] != "tea" {
+		t.Errorf("Expected 'tea', got %v", executedCommand[0])
 	}
 
 	expectedPaths := []string{
@@ -239,8 +239,8 @@ func TestOpenWithTea(t *testing.T) {
 	}
 
 	for i, expectedPath := range expectedPaths {
-		if len(executedCommand) <= i+2 || executedCommand[i+2] != expectedPath {
-			t.Errorf("Expected path %s at position %d, got %s", expectedPath, i, executedCommand[i+2])
+		if len(executedCommand) <= i+1 || executedCommand[i+1] != expectedPath {
+			t.Errorf("Expected path %s at position %d, got %s", expectedPath, i+1, executedCommand[i+1])
 		}
 	}
 }
