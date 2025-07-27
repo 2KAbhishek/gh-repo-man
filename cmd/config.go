@@ -14,6 +14,7 @@ type Config struct {
 	ReadmeCacheTTL      string `yaml:"readme_cache_ttl"`
 	UsernameCacheTTL    string `yaml:"username_cache_ttl"`
 	ProjectsDir         string `yaml:"projects_dir"`
+	PerUserDir          bool   `yaml:"per_user_dir"`
 }
 
 const DefaultConfigPath = "~/.config/gh-repo-man.yml"
@@ -56,6 +57,7 @@ func getDefaultConfig() Config {
 		ReadmeCacheTTL:      "24h",
 		UsernameCacheTTL:    "90d",
 		ProjectsDir:         "~/Projects",
+		PerUserDir:          true,
 	}
 }
 
