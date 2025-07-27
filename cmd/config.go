@@ -15,6 +15,8 @@ type Config struct {
 	UsernameCacheTTL    string `yaml:"username_cache_ttl"`
 	ProjectsDir         string `yaml:"projects_dir"`
 	PerUserDir          bool   `yaml:"per_user_dir"`
+	TeaIntegration      bool   `yaml:"tea_integration"`
+	Editor              string `yaml:"editor"`
 }
 
 const DefaultConfigPath = "~/.config/gh-repo-man.yml"
@@ -51,6 +53,11 @@ func LoadConfig(path string) Config {
 
 // getDefaultConfig returns the default configuration
 func getDefaultConfig() Config {
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "nvim"
+	}
+
 	return Config{
 		ShowReadmeInPreview: false,
 		ReposCacheTTL:       "24h",
@@ -58,6 +65,8 @@ func getDefaultConfig() Config {
 		UsernameCacheTTL:    "90d",
 		ProjectsDir:         "~/Projects",
 		PerUserDir:          true,
+		TeaIntegration:      true,
+		Editor:              editor,
 	}
 }
 
