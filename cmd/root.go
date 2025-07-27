@@ -78,6 +78,12 @@ var rootCmd = &cobra.Command{
 				os.Exit(1)
 			}
 			fmt.Println("Cloning complete.")
+
+			err = HandlePostClone(selectedRepos)
+			if err != nil {
+				fmt.Println("Error during post-clone handling:", err)
+				os.Exit(1)
+			}
 		} else {
 			fmt.Println("No repositories selected.")
 		}
