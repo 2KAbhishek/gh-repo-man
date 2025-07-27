@@ -38,6 +38,8 @@ func LoadConfig(path string) Config {
 		return getDefaultConfig()
 	}
 
+	cfg = applyDefaults(cfg)
+
 	if err := validateConfig(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Invalid config in %s: %v\n", expandedPath, err)
 		return getDefaultConfig()
@@ -55,6 +57,26 @@ func getDefaultConfig() Config {
 		UsernameCacheTTL:    "90d",
 		ProjectsDir:         "~/Projects",
 	}
+}
+
+// applyDefaults fills in empty fields with default values
+func applyDefaults(cfg Config) Config {
+	defaults := getDefaultConfig()
+
+	if cfg.ReposCacheTTL == "" {
+		cfg.ReposCacheTTL = defaults.ReposCacheTTL
+	}
+	if cfg.ReadmeCacheTTL == "" {
+		cfg.ReadmeCacheTTL = defaults.ReadmeCacheTTL
+	}
+	if cfg.UsernameCacheTTL == "" {
+		cfg.UsernameCacheTTL = defaults.UsernameCacheTTL
+	}
+	if cfg.ProjectsDir == "" {
+		cfg.ProjectsDir = defaults.ProjectsDir
+	}
+
+	return cfg
 }
 
 // expandPath expands ~ to the user's home directory
