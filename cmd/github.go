@@ -510,8 +510,7 @@ func OpenWithTea(repos []Repo) error {
 
 	fmt.Printf("🍵 Opening %d repositories with tea...\n", len(repos))
 
-	args := append([]string{"--projects"}, paths...)
-	cmd := ExecCommand("tea", args...)
+	cmd := ExecCommand("tea", paths...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
