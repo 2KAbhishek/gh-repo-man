@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -376,4 +377,92 @@ func GetReadme(repoFullName string) (string, error) {
 	SaveReadmeToCache(user, repoName, content)
 
 	return content, nil
+}
+
+// FilterRepositories filters repositories based on type and language
+func FilterRepositories(repos []Repo, repoType, language string) []Repo {
+	if repoType == "" && language == "" {
+		return repos
+	}
+
+	var filtered []Repo
+	for _, repo := range repos {
+		// Filter by type
+		if repoType != "" {
+			switch strings.ToLower(repoType) {
+			case "archived":
+				if !repo.IsArchived {
+					continue
+				}
+			case "forked":
+				if !repo.IsFork {
+					continue
+				}
+			case "private":
+				if !repo.IsPrivate {
+					continue
+				}
+			case "template":
+				if !repo.IsTemplate {
+					continue
+				}
+			default:
+			}
+		}
+
+		if language != "" && strings.ToLower(repo.PrimaryLanguage.Name) != strings.ToLower(language) {
+			continue
+		}
+
+		filtered = append(filtered, repo)
+	}
+
+	return filtered
+}
+
+// SortRepositories sorts repositories based on the specified criteria
+func SortRepositories(repos []Repo, sortBy string) []Repo {
+	if sortBy == "" {
+		return repos
+	}
+
+	sorted := make([]Repo, len(repos))
+	copy(sorted, repos)
+
+	switch strings.ToLower(sortBy) {
+	case "created":
+		sort.Slice(sorted, func(i, j int) bool {
+			return sorted[i].CreatedAt.After(sorted[j].CreatedAt)
+		})
+	case "forks":
+		sort.Slice(sorted, func(i, j int) bool {
+			return sorted[i].ForkCount > sorted[j].ForkCount
+		})
+	case "issues":
+		sort.Slice(sorted, func(i, j int) bool {
+			return sorted[i].Issues.TotalCount > sorted[j].Issues.TotalCount
+		})
+	case "language":
+		sort.Slice(sorted, func(i, j int) bool {
+			return strings.ToLower(sorted[i].PrimaryLanguage.Name) < strings.ToLower(sorted[j].PrimaryLanguage.Name)
+		})
+	case "name":
+		sort.Slice(sorted, func(i, j int) bool {
+			return strings.ToLower(sorted[i].Name) < strings.ToLower(sorted[j].Name)
+		})
+	case "pushed", "updated":
+		sort.Slice(sorted, func(i, j int) bool {
+			return sorted[i].UpdatedAt.After(sorted[j].UpdatedAt)
+		})
+	case "size":
+		sort.Slice(sorted, func(i, j int) bool {
+			return sorted[i].DiskUsage > sorted[j].DiskUsage
+		})
+	case "stars":
+		sort.Slice(sorted, func(i, j int) bool {
+			return sorted[i].StargazerCount > sorted[j].StargazerCount
+		})
+	}
+
+	return sorted
 }
