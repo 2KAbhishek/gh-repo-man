@@ -145,13 +145,11 @@ func GetRepos(user string) ([]Repo, error) {
 }
 
 func buildRepoListArgs(user string) []string {
-	args := []string{"repo", "list"}
+	args := []string{"repo", "list", "--limit", DefaultRepoLimit, "--json", JSONFields}
 	if user != "" {
 		args = append(args, user)
-	} else {
-		args = append(args, "--limit", DefaultRepoLimit)
 	}
-	return append(args, "--json", JSONFields)
+	return args
 }
 
 func getUserContext(user string) string {

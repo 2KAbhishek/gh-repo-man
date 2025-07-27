@@ -115,7 +115,17 @@ func TestHelperProcess(t *testing.T) {
 
 func handleGhCommand() {
 	if os.Args[4] == "repo" && os.Args[5] == "list" {
-		if len(os.Args) > 6 && os.Args[6] != "--limit" {
+		hasUsername := false
+		for i := 6; i < len(os.Args); i++ {
+			arg := os.Args[i]
+			if arg != "--limit" && arg != "1000" && arg != "--json" && 
+			   arg != "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage" {
+				hasUsername = true
+				break
+			}
+		}
+		
+		if hasUsername {
 			fmt.Fprintf(os.Stdout, "[%s]", mockUserRepo1JSON)
 		} else {
 			fmt.Fprintf(os.Stdout, "[%s,%s]", mockRepo1JSON, mockRepo2JSON)
