@@ -110,7 +110,16 @@ func validateConfig(cfg Config) error {
 	return nil
 }
 
-// GetProjectsDir returns the expanded projects directory path
-func GetProjectsDir() (string, error) {
-	return expandPath(config.ProjectsDir)
+// GetProjectsDirForUser returns the target directory for a specific user's repositories
+func GetProjectsDirForUser(username string) (string, error) {
+	projectsDir, err := expandPath(config.ProjectsDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to expand projects directory: %w", err)
+	}
+
+	if config.PerUserDir {
+		return filepath.Join(projectsDir, username), nil
+	}
+
+	return projectsDir, nil
 }
