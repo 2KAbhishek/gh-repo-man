@@ -12,37 +12,39 @@ func TestProjectsDir(t *testing.T) {
 	env := setupTempHome(t)
 	defer env.cleanup()
 
-	t.Run("default projects directory", func(t *testing.T) {
+	t.Run("default projects directory without per-user dir", func(t *testing.T) {
 		config := cmd.Config{
 			ProjectsDir: "~/Projects",
+			PerUserDir:  false,
 		}
 		cmd.SetConfig(config)
 
-		projectsDir, err := cmd.GetProjectsDir()
+		projectsDir, err := cmd.GetProjectsDirForUser("testuser")
 		if err != nil {
-			t.Fatalf("GetProjectsDir() returned error: %v", err)
+			t.Fatalf("GetProjectsDirForUser() returned error: %v", err)
 		}
 
 		expectedDir := filepath.Join(env.tmpDir, "Projects")
 		if projectsDir != expectedDir {
-			t.Errorf("GetProjectsDir() = %v, want %v", projectsDir, expectedDir)
+			t.Errorf("GetProjectsDirForUser() = %v, want %v", projectsDir, expectedDir)
 		}
 	})
 
-	t.Run("custom projects directory", func(t *testing.T) {
+	t.Run("custom projects directory without per-user dir", func(t *testing.T) {
 		config := cmd.Config{
 			ProjectsDir: "~/code",
+			PerUserDir:  false,
 		}
 		cmd.SetConfig(config)
 
-		projectsDir, err := cmd.GetProjectsDir()
+		projectsDir, err := cmd.GetProjectsDirForUser("testuser")
 		if err != nil {
-			t.Fatalf("GetProjectsDir() returned error: %v", err)
+			t.Fatalf("GetProjectsDirForUser() returned error: %v", err)
 		}
 
 		expectedDir := filepath.Join(env.tmpDir, "code")
 		if projectsDir != expectedDir {
-			t.Errorf("GetProjectsDir() = %v, want %v", projectsDir, expectedDir)
+			t.Errorf("GetProjectsDirForUser() = %v, want %v", projectsDir, expectedDir)
 		}
 	})
 
@@ -50,16 +52,35 @@ func TestProjectsDir(t *testing.T) {
 		absPath := filepath.Join(env.tmpDir, "workspace")
 		config := cmd.Config{
 			ProjectsDir: absPath,
+			PerUserDir:  false,
 		}
 		cmd.SetConfig(config)
 
-		projectsDir, err := cmd.GetProjectsDir()
+		projectsDir, err := cmd.GetProjectsDirForUser("testuser")
 		if err != nil {
-			t.Fatalf("GetProjectsDir() returned error: %v", err)
+			t.Fatalf("GetProjectsDirForUser() returned error: %v", err)
 		}
 
 		if projectsDir != absPath {
-			t.Errorf("GetProjectsDir() = %v, want %v", projectsDir, absPath)
+			t.Errorf("GetProjectsDirForUser() = %v, want %v", projectsDir, absPath)
+		}
+	})
+
+	t.Run("per-user directory enabled", func(t *testing.T) {
+		config := cmd.Config{
+			ProjectsDir: "~/Projects",
+			PerUserDir:  true,
+		}
+		cmd.SetConfig(config)
+
+		projectsDir, err := cmd.GetProjectsDirForUser("testuser")
+		if err != nil {
+			t.Fatalf("GetProjectsDirForUser() returned error: %v", err)
+		}
+
+		expectedDir := filepath.Join(env.tmpDir, "Projects", "testuser")
+		if projectsDir != expectedDir {
+			t.Errorf("GetProjectsDirForUser() = %v, want %v", projectsDir, expectedDir)
 		}
 	})
 }
