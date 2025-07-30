@@ -58,8 +58,10 @@ func setupMockTest(t *testing.T) *mockTestSetup {
 	env := setupTempHome(t)
 
 	cmd.SetConfig(cmd.Config{
-		ProjectsDir: "~/Projects",
-		PerUserDir:  true,
+		Repos: cmd.ReposConfig{
+			ProjectsDir: "~/Projects",
+			PerUserDir:  true,
+		},
 	})
 
 	originalExecCmd := cmd.ExecCommand
@@ -288,7 +290,7 @@ func TestPreviewCmd(t *testing.T) {
 	defer ts.cleanup()
 
 	dummyCmd := &cobra.Command{}
-	cmd.SetConfig(cmd.Config{ShowReadmeInPreview: true})
+	cmd.SetConfig(cmd.Config{UI: cmd.UIConfig{ShowReadmeInPreview: true}})
 
 	t.Run("repo1 preview", func(t *testing.T) {
 		output := captureStdout(t, func() {

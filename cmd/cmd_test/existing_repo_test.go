@@ -14,8 +14,10 @@ func TestCloneReposWithExistingDirectories(t *testing.T) {
 	defer env.cleanup()
 
 	cmd.SetConfig(cmd.Config{
-		ProjectsDir: "~/Projects",
-		PerUserDir:  true,
+		Repos: cmd.ReposConfig{
+			ProjectsDir: "~/Projects",
+			PerUserDir:  true,
+		},
 	})
 
 	originalExecCommand := cmd.ExecCommand
@@ -77,10 +79,19 @@ func TestHandlePostCloneWithExistingRepos(t *testing.T) {
 	defer env.cleanup()
 
 	cmd.SetConfig(cmd.Config{
-		ProjectsDir:    "~/Projects",
-		PerUserDir:     true,
-		TeaIntegration: true,
-		Editor:         "nvim",
+		Repos: cmd.ReposConfig{
+			ProjectsDir: "~/Projects",
+			PerUserDir:  true,
+		},
+		Integrations: cmd.IntegrationsConfig{
+			Tea: cmd.TeaConfig{
+				Enabled:  true,
+				AutoOpen: true,
+			},
+			Editor: cmd.EditorConfig{
+				Command: "nvim",
+			},
+		},
 	})
 
 	originalExecCommand := cmd.ExecCommand

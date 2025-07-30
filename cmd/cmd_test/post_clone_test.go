@@ -62,10 +62,19 @@ func TestHandlePostClone(t *testing.T) {
 	t.Run("tea integration enabled and available", func(t *testing.T) {
 		executedCommands = nil
 		cmd.SetConfig(cmd.Config{
-			ProjectsDir:    "~/Projects",
-			PerUserDir:     true,
-			TeaIntegration: true,
-			Editor:         "nvim",
+			Repos: cmd.ReposConfig{
+				ProjectsDir: "~/Projects",
+				PerUserDir:  true,
+			},
+			Integrations: cmd.IntegrationsConfig{
+				Tea: cmd.TeaConfig{
+					Enabled:  true,
+					AutoOpen: true,
+				},
+				Editor: cmd.EditorConfig{
+					Command: "nvim",
+				},
+			},
 		})
 
 		err := cmd.HandlePostClone(repos)
@@ -101,10 +110,19 @@ func TestHandlePostClone(t *testing.T) {
 	t.Run("tea integration disabled, fallback to editor", func(t *testing.T) {
 		executedCommands = nil
 		cmd.SetConfig(cmd.Config{
-			ProjectsDir:    "~/Projects",
-			PerUserDir:     true,
-			TeaIntegration: false,
-			Editor:         "nvim",
+			Repos: cmd.ReposConfig{
+				ProjectsDir: "~/Projects",
+				PerUserDir:  true,
+			},
+			Integrations: cmd.IntegrationsConfig{
+				Tea: cmd.TeaConfig{
+					Enabled:  false,
+					AutoOpen: false,
+				},
+				Editor: cmd.EditorConfig{
+					Command: "nvim",
+				},
+			},
 		})
 
 		err := cmd.HandlePostClone(repos)
@@ -132,8 +150,15 @@ func TestHandlePostClone(t *testing.T) {
 	t.Run("empty repos list", func(t *testing.T) {
 		executedCommands = nil
 		cmd.SetConfig(cmd.Config{
-			TeaIntegration: true,
-			Editor:         "nvim",
+			Integrations: cmd.IntegrationsConfig{
+				Tea: cmd.TeaConfig{
+					Enabled:  true,
+					AutoOpen: true,
+				},
+				Editor: cmd.EditorConfig{
+					Command: "nvim",
+				},
+			},
 		})
 
 		err := cmd.HandlePostClone([]cmd.Repo{})
@@ -149,10 +174,19 @@ func TestHandlePostClone(t *testing.T) {
 	t.Run("no editor configured", func(t *testing.T) {
 		executedCommands = nil
 		cmd.SetConfig(cmd.Config{
-			ProjectsDir:    "~/Projects",
-			PerUserDir:     true,
-			TeaIntegration: false,
-			Editor:         "",
+			Repos: cmd.ReposConfig{
+				ProjectsDir: "~/Projects",
+				PerUserDir:  true,
+			},
+			Integrations: cmd.IntegrationsConfig{
+				Tea: cmd.TeaConfig{
+					Enabled:  false,
+					AutoOpen: false,
+				},
+				Editor: cmd.EditorConfig{
+					Command: "",
+				},
+			},
 		})
 
 		err := cmd.HandlePostClone(repos)
@@ -219,8 +253,10 @@ func TestOpenWithTea(t *testing.T) {
 	}
 
 	cmd.SetConfig(cmd.Config{
-		ProjectsDir: "~/Projects",
-		PerUserDir:  true,
+		Repos: cmd.ReposConfig{
+			ProjectsDir: "~/Projects",
+			PerUserDir:  true,
+		},
 	})
 
 	repos := createTestReposForPostClone()
@@ -264,9 +300,15 @@ func TestOpenWithEditor(t *testing.T) {
 	}
 
 	cmd.SetConfig(cmd.Config{
-		ProjectsDir: "~/Projects",
-		PerUserDir:  true,
-		Editor:      "nvim",
+		Repos: cmd.ReposConfig{
+			ProjectsDir: "~/Projects",
+			PerUserDir:  true,
+		},
+		Integrations: cmd.IntegrationsConfig{
+			Editor: cmd.EditorConfig{
+				Command: "nvim",
+			},
+		},
 	})
 
 	repos := createTestReposForPostClone()

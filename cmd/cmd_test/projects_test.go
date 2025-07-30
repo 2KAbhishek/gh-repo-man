@@ -14,8 +14,10 @@ func TestProjectsDir(t *testing.T) {
 
 	t.Run("default projects directory without per-user dir", func(t *testing.T) {
 		config := cmd.Config{
-			ProjectsDir: "~/Projects",
-			PerUserDir:  false,
+			Repos: cmd.ReposConfig{
+				ProjectsDir: "~/Projects",
+				PerUserDir:  false,
+			},
 		}
 		cmd.SetConfig(config)
 
@@ -32,8 +34,10 @@ func TestProjectsDir(t *testing.T) {
 
 	t.Run("custom projects directory without per-user dir", func(t *testing.T) {
 		config := cmd.Config{
-			ProjectsDir: "~/code",
-			PerUserDir:  false,
+			Repos: cmd.ReposConfig{
+				ProjectsDir: "~/code",
+				PerUserDir:  false,
+			},
 		}
 		cmd.SetConfig(config)
 
@@ -51,8 +55,10 @@ func TestProjectsDir(t *testing.T) {
 	t.Run("absolute path projects directory", func(t *testing.T) {
 		absPath := filepath.Join(env.tmpDir, "workspace")
 		config := cmd.Config{
-			ProjectsDir: absPath,
-			PerUserDir:  false,
+			Repos: cmd.ReposConfig{
+				ProjectsDir: absPath,
+				PerUserDir:  false,
+			},
 		}
 		cmd.SetConfig(config)
 
@@ -68,8 +74,10 @@ func TestProjectsDir(t *testing.T) {
 
 	t.Run("per-user directory enabled", func(t *testing.T) {
 		config := cmd.Config{
-			ProjectsDir: "~/Projects",
-			PerUserDir:  true,
+			Repos: cmd.ReposConfig{
+				ProjectsDir: "~/Projects",
+				PerUserDir:  true,
+			},
 		}
 		cmd.SetConfig(config)
 
@@ -91,27 +99,29 @@ func TestConfigValidation(t *testing.T) {
 
 	t.Run("valid config with projects directory", func(t *testing.T) {
 		configPath := filepath.Join(env.tmpDir, "valid-projects-config.yml")
-		configContent := `projects_dir: ~/Projects`
+		configContent := `repos:
+  projects_dir: ~/Projects`
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 			t.Fatalf("Failed to write config file: %v", err)
 		}
 
 		config := cmd.LoadConfig(configPath)
-		if config.ProjectsDir != "~/Projects" {
-			t.Errorf("Expected ProjectsDir to be ~/Projects, got %v", config.ProjectsDir)
+		if config.Repos.ProjectsDir != "~/Projects" {
+			t.Errorf("Expected ProjectsDir to be ~/Projects, got %s", config.Repos.ProjectsDir)
 		}
 	})
 
 	t.Run("config with invalid projects directory", func(t *testing.T) {
 		configPath := filepath.Join(env.tmpDir, "invalid-projects-config.yml")
-		configContent := `projects_dir: ""`
+		configContent := `repos:
+  projects_dir: ""`
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 			t.Fatalf("Failed to write config file: %v", err)
 		}
 
 		config := cmd.LoadConfig(configPath)
-		if config.ProjectsDir != "~/Projects" {
-			t.Errorf("Expected fallback ProjectsDir to be ~/Projects, got %v", config.ProjectsDir)
+		if config.Repos.ProjectsDir != "~/Projects" {
+			t.Errorf("Expected fallback ProjectsDir to be ~/Projects, got %s", config.Repos.ProjectsDir)
 		}
 	})
 }

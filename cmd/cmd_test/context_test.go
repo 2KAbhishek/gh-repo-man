@@ -17,8 +17,10 @@ func setupEnv(t *testing.T) {
 	defer env.cleanup()
 
 	cmd.SetConfig(cmd.Config{
-		ProjectsDir: "~/Projects",
-		PerUserDir:  true,
+		Repos: cmd.ReposConfig{
+			ProjectsDir: "~/Projects",
+			PerUserDir:  true,
+		},
 	})
 }
 
