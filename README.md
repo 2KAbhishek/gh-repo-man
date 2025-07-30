@@ -28,13 +28,13 @@ gh-repo-manager is a `gh CLI extension` that allows `developers` to `browse, clo
 
 ## ✨ Features
 
-- **Interactive UI (FZF):** Terminal-based UI using `fzf` to browse repositories with live preview
-- **Multi-clone:** Clone multiple repositories at once with concurrent operations
-- **Browse User Repos:** Browse public repositories of any GitHub user
-- **Repository Details:** View comprehensive repo details including description, stars, forks, and README content
-- **Context Support:** Proper cancellation and timeout handling for all operations
-- **Security:** Input validation and command injection prevention
-- **Performance:** Concurrent cloning with semaphore-based limiting
+- Browse and clone GitHub repositories interactively using fuzzy finder (fzf) with live preview.
+- Filter repositories by language, type (archived, forked, private, template), and sort by various criteria.
+- Clone multiple repositories concurrently with configurable performance limits and progress indicators.
+- Seamless integration with [tmux-tea](https://github.com/2kabhishek/tmux-tea) and editors for instant workspace setup after cloning.
+- Smart caching system with configurable TTL to minimize API calls and improve performance.
+- Fully customizable icons and UI elements with hierarchical YAML configuration support.
+- Comprehensive repository details including stars, forks, issues, languages, and README preview.
 
 ## ⚡ Setup
 
@@ -63,31 +63,38 @@ gh extension install .
 
 ## ⚙️ Configuration
 
-By default, gh-repo-manager will look for a YAML config file at `~/.config/gh-repo-man.yml`.
+gh-repo-manager uses a YAML configuration file at `~/.config/gh-repo-man.yml` (or specify custom path with `--config`).
 
-Example config file:
-
-```yaml
-show_readme_in_preview: false
-```
-
-- `show_readme_in_preview`: If true, the README will be shown in the repository preview pane. Default is `false`.
+See [`example-config.yml`](./example-config.yml) for comprehensive configuration options with detailed comments covering repository settings, UI customization, performance tuning, and integrations.
 
 ## 🚀 Usage
 
 ```bash
-USAGE:
-    gh repo-manager [--user USERNAME]
+gh repo-manager [flags]
 
-Arguments:
-    --user, -u: Browse repositories for a specific user (optional)
+Flags:
+  -c, --config string     Path to configuration file (default "~/.config/gh-repo-man.yml")
+  -h, --help              Help for gh-repo-manager
+  -l, --language string   Filter by primary language
+  -s, --sort string       Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)
+  -t, --type string       Filter by repository type (archived, forked, private, template)
+  -u, --user string       Browse repositories for a specific user
 
 Examples:
-    # Browse your own repositories
-    gh repo-manager
+# Browse your own repositories
+gh repo-manager
 
-    # Browse another user's repositories
-    gh repo-manager --user torvalds
+# Browse another user's repositories
+gh repo-manager --user torvalds
+
+# Filter by language and sort by stars
+gh repo-manager --language go --sort stars
+
+# Browse private repositories only
+gh repo-manager --type private
+
+# Use custom config file
+gh repo-manager --config ~/my-config.yml
 ```
 
 ### Navigation
@@ -103,14 +110,13 @@ Planning to add repository management features like creating, archiving, and upd
 
 ### ✅ To-Do
 
-- [ ] Optimize config structure and defaults usage
-- [ ] Optimize test structure
+You tell me! Open an issue or PR with your ideas.
 
 ## 🧑‍💻 Behind The Code
 
 ### 🌈 Inspiration
 
-gh-repo-manager was inspired by the need for a more efficient way to browse and clone multiple GitHub repositories without switching between browser and terminal.
+gh-repo-manager was inspired by [octohub.nvim](https://github.com/2kabhishek/octohub.nvim), I wanted to create a standalone CLI tool that could be used independently of Neovim, while still providing a similar interactive experience for managing GitHub repositories.
 
 ### 💡 Challenges/Learnings
 
