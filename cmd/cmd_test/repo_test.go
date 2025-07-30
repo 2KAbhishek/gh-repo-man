@@ -34,25 +34,25 @@ func buildPreviewOutput(data repoData) string {
 	output := fmt.Sprintf("# %s\n\n%s Language: %s\n", data.name, languageIcon, data.language)
 
 	if data.description != "" {
-		output += fmt.Sprintf("%s %s\n", cmd.IconInfo, data.description)
+		output += fmt.Sprintf("%s %s\n", cmd.GetIcon("info"), data.description)
 	}
 
-	output += fmt.Sprintf("%s [Link](%s)\n\n", cmd.IconLink, data.url)
+	output += fmt.Sprintf("%s [Link](%s)\n\n", cmd.GetIcon("link"), data.url)
 	output += fmt.Sprintf("%s %d  %s %d  %s %d  %s %d\n",
-		cmd.IconStar, data.stars, cmd.IconFork, data.forks,
-		cmd.IconWatch, data.watchers, cmd.IconIssue, data.issues)
+		cmd.GetIcon("star"), data.stars, cmd.GetIcon("fork"), data.forks,
+		cmd.GetIcon("watch"), data.watchers, cmd.GetIcon("issue"), data.issues)
 
-	output += fmt.Sprintf("%s Owner: %s\n", cmd.IconOwner, data.owner)
-	output += fmt.Sprintf("%s Created At: %s\n", cmd.IconCalendar, data.createdAt)
-	output += fmt.Sprintf("%s Last Updated: %s\n", cmd.IconClock, data.updatedAt)
-	output += fmt.Sprintf("%s Disk Usage: %d KB\n", cmd.IconDisk, data.diskUsage)
+	output += fmt.Sprintf("%s Owner: %s\n", cmd.GetIcon("owner"), data.owner)
+	output += fmt.Sprintf("%s Created At: %s\n", cmd.GetIcon("calendar"), data.createdAt)
+	output += fmt.Sprintf("%s Last Updated: %s\n", cmd.GetIcon("clock"), data.updatedAt)
+	output += fmt.Sprintf("%s Disk Usage: %d KB\n", cmd.GetIcon("disk"), data.diskUsage)
 
 	if data.homepage != "" {
-		output += fmt.Sprintf("%s [Homepage](%s)\n", cmd.IconHome, data.homepage)
+		output += fmt.Sprintf("%s [Homepage](%s)\n", cmd.GetIcon("home"), data.homepage)
 	}
 
 	if len(data.topics) > 0 {
-		output += fmt.Sprintf("\n%s Topics: %s\n", cmd.IconTag, strings.Join(data.topics, ", "))
+		output += fmt.Sprintf("\n%s Topics: %s\n", cmd.GetIcon("tag"), strings.Join(data.topics, ", "))
 	}
 
 	return output + "\n---\n" + data.readmeContent + "\n"

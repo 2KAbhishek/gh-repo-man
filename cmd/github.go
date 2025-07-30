@@ -248,7 +248,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 			defer func() { <-sem }()
 
 			if config.UI.ProgressIndicators {
-				fmt.Printf("[%d/%d] %s Cloning %s...\n", i+1, len(repos), IconCloning, repo.Name)
+				fmt.Printf("[%d/%d] %s Cloning %s...\n", i+1, len(repos), GetIcon("cloning"), repo.Name)
 			}
 
 			targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
@@ -264,7 +264,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 
 			targetPath := filepath.Join(targetDir, repo.Name)
 			if _, err := os.Stat(targetPath); err == nil {
-				fmt.Printf("[%d/%d] %s %s already exists in %s, skipping clone\n", i+1, len(repos), IconInfo, repo.Name, targetPath)
+				fmt.Printf("[%d/%d] %s %s already exists in %s, skipping clone\n", i+1, len(repos), GetIcon("info"), repo.Name, targetPath)
 				return
 			}
 
@@ -308,7 +308,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 				return
 			}
 
-			fmt.Printf("[%d/%d] %s Successfully cloned %s to %s\n", i+1, len(repos), IconSuccess, repo.Name, targetPath)
+			fmt.Printf("[%d/%d] %s Successfully cloned %s to %s\n", i+1, len(repos), GetIcon("success"), repo.Name, targetPath)
 			errChan <- nil
 		}(i, repo)
 	}
@@ -331,7 +331,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 		return firstError
 	}
 
-	fmt.Printf("%s All %d repositories cloned successfully!\n", IconDone, len(repos))
+	fmt.Printf("%s All %d repositories cloned successfully!\n", GetIcon("done"), len(repos))
 	return nil
 }
 

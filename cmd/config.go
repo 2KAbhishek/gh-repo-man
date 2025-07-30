@@ -9,26 +9,7 @@ import (
 )
 
 type IconConfig struct {
-	Star     string `yaml:"star"`
-	Fork     string `yaml:"fork"`
-	Watch    string `yaml:"watch"`
-	Issue    string `yaml:"issue"`
-	Success  string `yaml:"success"`
-	Error    string `yaml:"error"`
-	Info     string `yaml:"info"`
-	Cloning  string `yaml:"cloning"`
-	Done     string `yaml:"done"`
-	Owner    string `yaml:"owner"`
-	Calendar string `yaml:"calendar"`
-	Clock    string `yaml:"clock"`
-	Disk     string `yaml:"disk"`
-	Home     string `yaml:"home"`
-	Tag      string `yaml:"tag"`
-	Link     string `yaml:"link"`
-	Forked   string `yaml:"forked"`
-	Archived string `yaml:"archived"`
-	Private  string `yaml:"private"`
-	Template string `yaml:"template"`
+	General   map[string]string `yaml:"general"`
 	Languages map[string]string `yaml:"languages"`
 }
 
@@ -54,9 +35,9 @@ type CacheConfig struct {
 }
 
 type PerformanceConfig struct {
-	RepoLimit            string      `yaml:"repo_limit"`
-	MaxConcurrentClones  int         `yaml:"max_concurrent_clones"`
-	Cache                CacheConfig `yaml:"cache"`
+	RepoLimit           string      `yaml:"repo_limit"`
+	MaxConcurrentClones int         `yaml:"max_concurrent_clones"`
+	Cache               CacheConfig `yaml:"cache"`
 }
 
 type TeaConfig struct {
@@ -121,7 +102,6 @@ func LoadConfig(path string) Config {
 
 func SetConfigAndUpdateIcons(cfg Config) {
 	config = cfg
-	updateIconsFromConfig()
 }
 
 // getDefaultConfig returns the default configuration
@@ -144,27 +124,8 @@ func getDefaultConfig() Config {
 			ColorOutput:         true,
 			ProgressIndicators:  true,
 			Icons: IconConfig{
-				Star:     "⭐",
-				Fork:     "🍴",
-				Watch:    "👁",
-				Issue:    "🐛",
-				Success:  "✅",
-				Error:    "❌",
-				Info:     "ℹ️",
-				Cloning:  "📥",
-				Done:     "✓",
-				Owner:    "👤",
-				Calendar: "📅",
-				Clock:    "⏰",
-				Disk:     "💾",
-				Home:     "🏠",
-				Tag:      "🏷",
-				Link:     "🔗",
-				Forked:   "🍴",
-				Archived: "📦",
-				Private:  "🔒",
-				Template: "📋",
-				Languages: make(map[string]string),
+				General:   GeneralIcons,
+				Languages: LanguageIcons,
 			},
 		},
 		Performance: PerformanceConfig{
@@ -219,13 +180,12 @@ func applyDefaults(cfg Config) Config {
 		cfg.Integrations.Editor.Command = defaults.Integrations.Editor.Command
 	}
 
-	if cfg.UI.Icons.Star == "" {
+	if cfg.UI.Icons.General == nil {
 		cfg.UI.Icons = defaults.UI.Icons
 	}
 
 	return cfg
 }
-
 
 // expandPath expands ~ to the user's home directory
 func expandPath(path string) (string, error) {
@@ -253,7 +213,7 @@ func validateConfig(cfg Config) error {
 	if _, err := expandPath(cfg.Repos.ProjectsDir); err != nil {
 		return fmt.Errorf("invalid repos.projects_dir: %w", err)
 	}
-	
+
 	return nil
 }
 

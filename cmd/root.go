@@ -170,38 +170,38 @@ var PreviewCmd = &cobra.Command{
 		fmt.Printf("# %s\n\n%s Language: %s\n", targetRepo.Name, languageIcon, targetRepo.PrimaryLanguage.Name)
 
 		if targetRepo.Description != "" {
-			fmt.Printf("%s %s\n", IconInfo, targetRepo.Description)
+			fmt.Printf("%s %s\n", GetIcon("info"), targetRepo.Description)
 		}
 
-		fmt.Printf("%s [Link](%s)\n\n", IconLink, targetRepo.HTMLURL)
+		fmt.Printf("%s [Link](%s)\n\n", GetIcon("link"), targetRepo.HTMLURL)
 		fmt.Printf("%s %d  %s %d  %s %d  %s %d\n",
-			IconStar, targetRepo.StargazerCount,
-			IconFork, targetRepo.ForkCount,
-			IconWatch, targetRepo.Watchers.TotalCount,
-			IconIssue, targetRepo.Issues.TotalCount,
+			GetIcon("star"), targetRepo.StargazerCount,
+			GetIcon("fork"), targetRepo.ForkCount,
+			GetIcon("watch"), targetRepo.Watchers.TotalCount,
+			GetIcon("issue"), targetRepo.Issues.TotalCount,
 		)
-		fmt.Printf("%s Owner: %s\n", IconOwner, targetRepo.Owner.Login)
-		fmt.Printf("%s Created At: %s\n", IconCalendar, targetRepo.CreatedAt.Format("2006-01-02 15:04:05"))
-		fmt.Printf("%s Last Updated: %s\n", IconClock, targetRepo.UpdatedAt.Format("2006-01-02 15:04:05"))
-		fmt.Printf("%s Disk Usage: %d KB\n", IconDisk, targetRepo.DiskUsage)
+		fmt.Printf("%s Owner: %s\n", GetIcon("owner"), targetRepo.Owner.Login)
+		fmt.Printf("%s Created At: %s\n", GetIcon("calendar"), targetRepo.CreatedAt.Format("2006-01-02 15:04:05"))
+		fmt.Printf("%s Last Updated: %s\n", GetIcon("clock"), targetRepo.UpdatedAt.Format("2006-01-02 15:04:05"))
+		fmt.Printf("%s Disk Usage: %d KB\n", GetIcon("disk"), targetRepo.DiskUsage)
 
 		if targetRepo.HomepageURL != "" {
-			fmt.Printf("%s [Homepage](%s)\n", IconHome, targetRepo.HomepageURL)
+			fmt.Printf("%s [Homepage](%s)\n", GetIcon("home"), targetRepo.HomepageURL)
 		}
 		if targetRepo.IsFork {
-			fmt.Printf("\n%s Forked\n", IconForked)
+			fmt.Printf("\n%s Forked\n", GetIcon("forked"))
 		}
 		if targetRepo.IsArchived {
-			fmt.Printf("\n%s Archived\n", IconArchived)
+			fmt.Printf("\n%s Archived\n", GetIcon("archived"))
 		}
 		if targetRepo.IsPrivate {
-			fmt.Printf("\n%s Private\n", IconPrivate)
+			fmt.Printf("\n%s Private\n", GetIcon("private"))
 		}
 		if targetRepo.IsTemplate {
-			fmt.Printf("\n%s Template\n", IconTemplate)
+			fmt.Printf("\n%s Template\n", GetIcon("template"))
 		}
 		if len(targetRepo.Topics) > 0 {
-			fmt.Printf("\n%s Topics: %s\n", IconTag, strings.Join(targetRepo.TopicNames(), ", "))
+			fmt.Printf("\n%s Topics: %s\n", GetIcon("tag"), strings.Join(targetRepo.TopicNames(), ", "))
 		}
 
 		fmt.Print("\n---\n")
