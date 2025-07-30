@@ -114,7 +114,7 @@ func init() {
 
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		SetConfigAndUpdateIcons(LoadConfig(configPath))
-		
+
 		if SortBy == "" {
 			SortBy = config.Repos.SortBy
 		}

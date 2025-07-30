@@ -225,7 +225,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 	if maxConcurrent == 0 {
 		maxConcurrent = MaxConcurrentClones
 	}
-	
+
 	if config.UI.ProgressIndicators {
 		fmt.Printf("Cloning %d repositories with up to %d concurrent operations...\n", len(repos), maxConcurrent)
 	}
@@ -269,16 +269,16 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 			}
 
 			sshURL := ConvertToSSHURL(repo.HTMLURL)
-			
+
 			args := []string{"clone"}
-			
+
 			if config.Integrations.Git.CloneDepth > 0 {
 				args = append(args, "--depth", fmt.Sprintf("%d", config.Integrations.Git.CloneDepth))
 			}
-			
+
 			args = append(args, config.Integrations.Git.CloneArgs...)
 			args = append(args, sshURL, targetPath)
-			
+
 			cmd := ExecCommand("git", args...)
 
 			err = cmd.Start()
@@ -551,7 +551,7 @@ func OpenWithTea(repos []Repo) error {
 // OpenWithEditor opens repositories with the configured editor
 func OpenWithEditor(repos []Repo) error {
 	editorCmd := config.Integrations.Editor.Command
-	
+
 	if editorCmd == "" {
 		fmt.Println("No editor configured, skipping post-clone editor opening.")
 		return nil
@@ -571,7 +571,7 @@ func OpenWithEditor(repos []Repo) error {
 		if config.UI.ProgressIndicators {
 			fmt.Printf("Opening %s in %s\n", repo.Name, editorCmd)
 		}
-		
+
 		args := append(config.Integrations.Editor.Args, repoPath)
 		cmd := ExecCommand(editorCmd, args...)
 		cmd.Stdout = os.Stdout
