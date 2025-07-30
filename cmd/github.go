@@ -558,7 +558,7 @@ func OpenWithEditor(repos []Repo) error {
 	}
 
 	if config.UI.ProgressIndicators {
-		fmt.Printf("📝 Opening %d repositories with %s...\n", len(repos), editorCmd)
+		fmt.Printf("%s Opening %d repositories with %s...\n", GetIcon("editor"), len(repos), editorCmd)
 	}
 
 	for _, repo := range repos {

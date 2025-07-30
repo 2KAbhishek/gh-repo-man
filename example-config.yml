@@ -44,31 +44,34 @@ ui:
 
   # Customizable icons - override any icon used in the application
   icons:
-    # Status and action icons
-    star: '⭐' # Repository stars
-    fork: '🍴' # Repository forks
-    watch: '👁' # Repository watchers
-    issue: '🐛' # Repository issues
-    success: '✅' # Successful operations
-    error: '❌' # Failed operations
-    info: 'ℹ️' # Informational messages
-    cloning: '📥' # Currently cloning
-    done: '✓' # Operation completed
+    # General UI icons - override any of the default icons
+    general:
+      # Status and action icons
+      star: '⭐' # Repository stars
+      fork: '🍴' # Repository forks
+      watch: '👁' # Repository watchers
+      issue: '🐛' # Repository issues
+      success: '✅' # Successful operations
+      error: '❌' # Failed operations
+      info: 'ℹ️' # Informational messages
+      cloning: '📥' # Currently cloning
+      done: '✓' # Operation completed
+      editor: '📝' # Editor operations
 
-    # Repository information icons
-    owner: '👤' # Repository owner
-    calendar: '📅' # Creation date
-    clock: '⏰' # Last updated
-    disk: '💾' # Disk usage
-    home: '🏠' # Homepage URL
-    tag: '🏷' # Repository topics/tags
-    link: '🔗' # Repository URL
+      # Repository information icons
+      owner: '👤' # Repository owner
+      calendar: '📅' # Creation date
+      clock: '⏰' # Last updated
+      disk: '💾' # Disk usage
+      home: '🏠' # Homepage URL
+      tag: '🏷' # Repository topics/tags
+      link: '🔗' # Repository URL
 
-    # Repository type indicators
-    forked: '🍴' # Forked repository
-    archived: '📦' # Archived repository
-    private: '🔒' # Private repository
-    template: '📋' # Template repository
+      # Repository type indicators
+      forked: '🍴' # Forked repository
+      archived: '📦' # Archived repository
+      private: '🔒' # Private repository
+      template: '📋' # Template repository
 
     # Language icon overrides
     # Override the default icon for any programming language
