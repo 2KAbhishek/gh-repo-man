@@ -47,7 +47,11 @@ var rootCmd = &cobra.Command{
 		} else {
 			previewCmd = "gh-repo-manager preview {}"
 		}
-		fzfCmd := exec.Command("fzf", "--multi", "--ansi", "--preview", previewCmd)
+		fzfArgs := []string{"--multi", "--preview", previewCmd}
+		if config.UI.ColorOutput {
+			fzfArgs = append(fzfArgs, "--ansi")
+		}
+		fzfCmd := exec.Command("fzf", fzfArgs...)
 		fzfCmd.Stdin = strings.NewReader(strings.Join(repoNames, "\n"))
 		var out bytes.Buffer
 		fzfCmd.Stdout = &out
@@ -71,13 +75,17 @@ var rootCmd = &cobra.Command{
 		selectedRepos := SelectReposByNames(repoMap, selectedNames)
 
 		if len(selectedRepos) > 0 {
-			fmt.Println("Cloning selected repositories...")
+			if config.UI.ProgressIndicators {
+				fmt.Println("Cloning selected repositories...")
+			}
 			err = CloneRepos(selectedRepos)
 			if err != nil {
 				fmt.Println("Error during cloning:", err)
 				os.Exit(1)
 			}
-			fmt.Println("Cloning complete.")
+			if config.UI.ProgressIndicators {
+				fmt.Println("Cloning complete.")
+			}
 
 			err = HandlePostClone(selectedRepos)
 			if err != nil {
@@ -105,10 +113,20 @@ func init() {
 	rootCmd.Flags().StringVarP(&SortBy, "sort", "s", "", "Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)")
 
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		config = LoadConfig(configPath)
+		SetConfigAndUpdateIcons(LoadConfig(configPath))
+		
+		if SortBy == "" {
+			SortBy = config.Repos.SortBy
+		}
+		if RepoType == "" {
+			RepoType = config.Repos.RepoType
+		}
+		if LanguageFilter == "" {
+			LanguageFilter = config.Repos.Language
+		}
 	}
 
-	config = LoadConfig(DefaultConfigPath)
+	SetConfigAndUpdateIcons(LoadConfig(DefaultConfigPath))
 
 	PreviewCmd.Flags().StringVar(&previewUser, "user", "", "The user whose repositories to search for preview")
 	rootCmd.AddCommand(PreviewCmd)
@@ -188,7 +206,7 @@ var PreviewCmd = &cobra.Command{
 
 		fmt.Print("\n---\n")
 
-		if config.ShowReadmeInPreview {
+		if config.UI.ShowReadmeInPreview {
 			readmeContent, err := GetReadme(targetRepo.Owner.Login + "/" + targetRepo.Name)
 			if err != nil {
 				fmt.Println("Error fetching README:", err)

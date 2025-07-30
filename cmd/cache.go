@@ -136,7 +136,7 @@ func GetCachedCurrentUsername() (string, error) {
 	}
 
 	usernameCachePath := filepath.Join(cacheDir, "current_username.txt")
-	usernameCacheTTL, err := ParseTTL(config.UsernameCacheTTL)
+	usernameCacheTTL, err := ParseTTL(config.Performance.Cache.Username)
 	if err != nil {
 		usernameCacheTTL = 90 * 24 * time.Hour
 	}

@@ -123,7 +123,7 @@ func ValidateUsername(username string) error {
 
 // GetRepos fetches repositories for a user with caching support
 func GetRepos(user string) ([]Repo, error) {
-	reposCacheTTL, err := ParseTTL(config.ReposCacheTTL)
+	reposCacheTTL, err := ParseTTL(config.Performance.Cache.Repos)
 	if err != nil {
 		reposCacheTTL = 24 * time.Hour
 	}
@@ -148,7 +148,11 @@ func GetRepos(user string) ([]Repo, error) {
 }
 
 func buildRepoListArgs(user string) []string {
-	args := []string{"repo", "list", "--limit", DefaultRepoLimit, "--json", JSONFields}
+	repoLimit := config.Performance.RepoLimit
+	if repoLimit == "" {
+		repoLimit = DefaultRepoLimit
+	}
+	args := []string{"repo", "list", "--limit", repoLimit, "--json", JSONFields}
 	if user != "" {
 		args = append(args, user)
 	}
@@ -217,9 +221,16 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 		return nil
 	}
 
-	fmt.Printf("Cloning %d repositories with up to %d concurrent operations...\n", len(repos), MaxConcurrentClones)
+	maxConcurrent := config.Performance.MaxConcurrentClones
+	if maxConcurrent == 0 {
+		maxConcurrent = MaxConcurrentClones
+	}
+	
+	if config.UI.ProgressIndicators {
+		fmt.Printf("Cloning %d repositories with up to %d concurrent operations...\n", len(repos), maxConcurrent)
+	}
 
-	sem := make(chan struct{}, MaxConcurrentClones)
+	sem := make(chan struct{}, maxConcurrent)
 	errChan := make(chan error, len(repos))
 	var wg sync.WaitGroup
 
@@ -236,7 +247,9 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 			}
 			defer func() { <-sem }()
 
-			fmt.Printf("[%d/%d] %s Cloning %s...\n", i+1, len(repos), IconCloning, repo.Name)
+			if config.UI.ProgressIndicators {
+				fmt.Printf("[%d/%d] %s Cloning %s...\n", i+1, len(repos), IconCloning, repo.Name)
+			}
 
 			targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
 			if err != nil {
@@ -256,7 +269,17 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 			}
 
 			sshURL := ConvertToSSHURL(repo.HTMLURL)
-			cmd := ExecCommand("git", "clone", sshURL, targetPath)
+			
+			args := []string{"clone"}
+			
+			if config.Integrations.Git.CloneDepth > 0 {
+				args = append(args, "--depth", fmt.Sprintf("%d", config.Integrations.Git.CloneDepth))
+			}
+			
+			args = append(args, config.Integrations.Git.CloneArgs...)
+			args = append(args, sshURL, targetPath)
+			
+			cmd := ExecCommand("git", args...)
 
 			err = cmd.Start()
 			if err != nil {
@@ -352,7 +375,7 @@ func GetReadme(repoFullName string) (string, error) {
 	}
 	user, repoName := parts[0], parts[1]
 
-	readmeCacheTTL, err := ParseTTL(config.ReadmeCacheTTL)
+	readmeCacheTTL, err := ParseTTL(config.Performance.Cache.Readme)
 	if err != nil {
 		readmeCacheTTL = 24 * time.Hour
 	}
@@ -478,8 +501,13 @@ func HandlePostClone(repos []Repo) error {
 		return nil
 	}
 
-	if config.TeaIntegration && IsTeaAvailable() {
-		return OpenWithTea(repos)
+	if config.Integrations.Tea.Enabled && IsTeaAvailable() {
+		if config.Integrations.Tea.AutoOpen {
+			return OpenWithTea(repos)
+		} else {
+			fmt.Printf("🍵 Tea integration enabled but auto_open is disabled. Repositories cloned successfully.\n")
+			return nil
+		}
 	}
 
 	return OpenWithEditor(repos)
@@ -508,7 +536,9 @@ func OpenWithTea(repos []Repo) error {
 		return nil
 	}
 
-	fmt.Printf("🍵 Opening %d repositories with tea...\n", len(repos))
+	if config.UI.ProgressIndicators {
+		fmt.Printf("🍵 Opening %d repositories with tea...\n", len(repos))
+	}
 
 	cmd := ExecCommand("tea", paths...)
 	cmd.Stdout = os.Stdout
@@ -520,12 +550,16 @@ func OpenWithTea(repos []Repo) error {
 
 // OpenWithEditor opens repositories with the configured editor
 func OpenWithEditor(repos []Repo) error {
-	if config.Editor == "" {
+	editorCmd := config.Integrations.Editor.Command
+	
+	if editorCmd == "" {
 		fmt.Println("No editor configured, skipping post-clone editor opening.")
 		return nil
 	}
 
-	fmt.Printf("📝 Opening %d repositories with %s...\n", len(repos), config.Editor)
+	if config.UI.ProgressIndicators {
+		fmt.Printf("📝 Opening %d repositories with %s...\n", len(repos), editorCmd)
+	}
 
 	for _, repo := range repos {
 		targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
@@ -534,15 +568,19 @@ func OpenWithEditor(repos []Repo) error {
 		}
 		repoPath := filepath.Join(targetDir, repo.Name)
 
-		fmt.Printf("Opening %s in %s\n", repo.Name, config.Editor)
-		cmd := ExecCommand(config.Editor, repoPath)
+		if config.UI.ProgressIndicators {
+			fmt.Printf("Opening %s in %s\n", repo.Name, editorCmd)
+		}
+		
+		args := append(config.Integrations.Editor.Args, repoPath)
+		cmd := ExecCommand(editorCmd, args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
 
 		err = cmd.Run()
 		if err != nil {
-			fmt.Printf("Warning: Failed to open %s with %s: %v\n", repo.Name, config.Editor, err)
+			fmt.Printf("Warning: Failed to open %s with %s: %v\n", repo.Name, editorCmd, err)
 		}
 	}
 
