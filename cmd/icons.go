@@ -1,5 +1,7 @@
 package cmd
 
+import "strings"
+
 var GeneralIcons = map[string]string{
 	"star":     "⭐",
 	"fork":     "🍴",
@@ -25,27 +27,26 @@ var GeneralIcons = map[string]string{
 }
 
 var LanguageIcons = map[string]string{
-	"Go":         "🐹",
-	"Python":     "🐍",
-	"JavaScript": "📜",
-	"TypeScript": "📘",
-	"Java":       "☕",
-	"C":          "⚙️",
-	"C++":        "⚙️",
-	"Ruby":       "💎",
-	"PHP":        "🐘",
-	"Rust":       "🦀",
-	"Swift":      "🍎",
-	"Kotlin":     "🎯",
-	"Shell":      "🐚",
-	"HTML":       "🌐",
-	"CSS":        "🎨",
-	"Lua":        "🌙",
-	"Vim Script": "✏️",
-	"Dockerfile": "🐳",
-	"YAML":       "📄",
-	"JSON":       "📋",
-	"Markdown":   "📝",
+	"go":         "🐹",
+	"python":     "🐍",
+	"javascript": "📜",
+	"typescript": "📘",
+	"java":       "☕",
+	"c":          "⚙️",
+	"c++":        "⚙️",
+	"ruby":       "💎",
+	"php":        "🐘",
+	"rust":       "🦀",
+	"swift":      "🍎",
+	"kotlin":     "🎯",
+	"shell":      "🐚",
+	"html":       "🌐",
+	"css":        "🎨",
+	"lua":        "🌙",
+	"dockerfile": "🐳",
+	"yaml":       "📄",
+	"json":       "📋",
+	"markdown":   "📝",
 }
 
 // GetIcon returns the icon for a given key
@@ -63,11 +64,12 @@ func GetIcon(key string) string {
 
 // GetLanguageIcon returns the icon for a programming language
 func GetLanguageIcon(language string) string {
-	if icon, exists := config.UI.Icons.Languages[language]; exists && icon != "" {
+	normalizedLang := strings.ToLower(language)
+	if icon, exists := config.UI.Icons.Languages[normalizedLang]; exists && icon != "" {
 		return icon
 	}
 
-	if icon, exists := LanguageIcons[language]; exists {
+	if icon, exists := LanguageIcons[normalizedLang]; exists {
 		return icon
 	}
 
