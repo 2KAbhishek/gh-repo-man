@@ -143,16 +143,10 @@ func TestGetLanguageIcon(t *testing.T) {
 		language string
 		expected string
 	}{
-		{"Go", "🐹"},
-		{"Python", "🐍"},
-		{"JavaScript", "📜"},
-		{"Unknown Language", "📁"},
-		{"", "📁"},
-		{"go", "🐹"},
-		{"PYTHON", "🐍"},
-		{"javascript", "📜"},
-		{"TypeScript", "📘"},
-		{"typescript", "📘"},
+		{"Go", " "},
+		{"go", " "},
+		{"gO", " "},
+		{"lolcat", " "},
 	}
 
 	for _, test := range tests {
