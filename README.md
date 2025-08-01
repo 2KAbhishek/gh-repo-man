@@ -69,32 +69,46 @@ See [`example-config.yml`](./example-config.yml) for comprehensive configuration
 
 ## 🚀 Usage
 
-```bash
-gh repo-manager [flags]
+The tool can be used in two ways:
 
-Flags:
+```bash
+### As a GitHub CLI Extension (Recommended)
+gh repo-man [flags]
+### As a Standalone Binary
+gh-repo-man [flags]
+```
+
+### Flags
+
+```
   -c, --config string     Path to configuration file (default "~/.config/gh-repo-man.yml")
-  -h, --help              Help for gh-repo-man
+  -h, --help              Help for repo-man
   -l, --language string   Filter by primary language
   -s, --sort string       Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)
   -t, --type string       Filter by repository type (archived, forked, private, template)
   -u, --user string       Browse repositories for a specific user
+```
 
-Examples:
-# Browse your own repositories
-gh repo-manager
+### Examples
+
+```bash
+# Browse your own repositories (as gh extension)
+gh repo-man
+
+# Browse your own repositories (standalone)
+gh-repo-man
 
 # Browse another user's repositories
-gh repo-manager --user torvalds
+gh repo-man --user torvalds
 
 # Filter by language and sort by stars
-gh repo-manager --language go --sort stars
+gh repo-man --language go --sort stars
 
 # Browse private repositories only
-gh repo-manager --type private
+gh repo-man --type private
 
 # Use custom config file
-gh repo-manager --config ~/my-config.yml
+gh repo-man --config ~/my-config.yml
 ```
 
 ### Navigation
