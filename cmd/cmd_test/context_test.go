@@ -138,7 +138,6 @@ func TestCloneReposWithContextCancellation(t *testing.T) {
 func TestCloneReposEmptyList(t *testing.T) {
 	ctx := context.Background()
 	err := cmd.CloneReposWithContext(ctx, []cmd.Repo{})
-
 	if err != nil {
 		t.Errorf("CloneReposWithContext() with empty list should not return error, got: %v", err)
 	}

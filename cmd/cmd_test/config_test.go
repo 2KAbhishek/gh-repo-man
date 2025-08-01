@@ -36,7 +36,7 @@ func TestLoadConfigWithInvalidYAML(t *testing.T) {
 	configPath := filepath.Join(tmpDir, "invalid-config.yml")
 
 	invalidYAML := "ui:\n  show_readme_in_preview: true\ninvalid_yaml: [\n"
-	err := os.WriteFile(configPath, []byte(invalidYAML), 0644)
+	err := os.WriteFile(configPath, []byte(invalidYAML), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create invalid config file: %v", err)
 	}
@@ -53,7 +53,7 @@ func TestLoadConfigWithTildePath(t *testing.T) {
 
 	configContent := "ui:\n  show_readme_in_preview: true\n"
 	configPath := filepath.Join(env.tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(configContent), 0644)
+	err := os.WriteFile(configPath, []byte(configContent), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test config file: %v", err)
 	}

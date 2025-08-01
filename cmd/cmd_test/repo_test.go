@@ -17,8 +17,8 @@ type repoData struct {
 
 // buildExpectedPreviewOutput builds expected preview output using actual icon constants
 func buildExpectedPreviewOutput(repoName, language, description, url string, stars, forks, watchers, issues int,
-	owner, createdAt, updatedAt string, diskUsage int, homepage string, topics []string, readmeContent string) string {
-
+	owner, createdAt, updatedAt string, diskUsage int, homepage string, topics []string, readmeContent string,
+) string {
 	data := repoData{
 		name: repoName, language: language, description: description, url: url,
 		stars: stars, forks: forks, watchers: watchers, issues: issues,

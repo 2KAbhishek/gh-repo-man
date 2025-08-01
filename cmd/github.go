@@ -150,7 +150,9 @@ func GetRepos(user string) ([]Repo, error) {
 		return nil, err
 	}
 
-	SaveReposToCache(user, repos)
+	if err := SaveReposToCache(user, repos); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to save repos to cache: %v\n", err)
+	}
 
 	return repos, nil
 }
@@ -196,7 +198,9 @@ func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
 	select {
 	case <-ctx.Done():
 		if cmd.Process != nil {
-			cmd.Process.Kill()
+			if killErr := cmd.Process.Kill(); killErr != nil {
+				fmt.Fprintf(os.Stderr, "Warning: Failed to kill process: %v\n", killErr)
+			}
 		}
 		return nil, fmt.Errorf("operation cancelled: %w", ctx.Err())
 	case res := <-resultChan:
@@ -298,7 +302,9 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 			go func() {
 				<-ctx.Done()
 				if cmd.Process != nil {
-					cmd.Process.Kill()
+					if killErr := cmd.Process.Kill(); killErr != nil {
+						fmt.Fprintf(os.Stderr, "Warning: Failed to kill process: %v\n", killErr)
+					}
 				}
 			}()
 
@@ -401,7 +407,9 @@ func GetReadme(repoFullName string) (string, error) {
 		if exitError, ok := err.(*exec.ExitError); ok {
 			stderr := string(exitError.Stderr)
 			if exitError.ExitCode() == 1 && (strings.Contains(stderr, "Not Found") || strings.Contains(stderr, "404")) {
-				SaveReadmeToCache(user, repoName, "")
+				if err := SaveReadmeToCache(user, repoName, ""); err != nil {
+					fmt.Fprintf(os.Stderr, "Warning: Failed to save empty README to cache: %v\n", err)
+				}
 				return "", nil
 			}
 			return "", fmt.Errorf("gh api failed: %s", stderr)
@@ -410,7 +418,9 @@ func GetReadme(repoFullName string) (string, error) {
 	}
 
 	content := string(out)
-	SaveReadmeToCache(user, repoName, content)
+	if err := SaveReadmeToCache(user, repoName, content); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to save README to cache: %v\n", err)
+	}
 
 	return content, nil
 }

@@ -101,7 +101,7 @@ func TestConfigValidation(t *testing.T) {
 		configPath := filepath.Join(env.tmpDir, "valid-projects-config.yml")
 		configContent := `repos:
   projects_dir: ~/Projects`
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config file: %v", err)
 		}
 
@@ -115,7 +115,7 @@ func TestConfigValidation(t *testing.T) {
 		configPath := filepath.Join(env.tmpDir, "invalid-projects-config.yml")
 		configContent := `repos:
   projects_dir: ""`
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config file: %v", err)
 		}
 

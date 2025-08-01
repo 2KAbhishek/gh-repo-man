@@ -110,7 +110,7 @@ func TestCacheValidation(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.json")
 
 	content := []byte(`{"test": "data"}`)
-	err := os.WriteFile(testFile, content, 0644)
+	err := os.WriteFile(testFile, content, 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}

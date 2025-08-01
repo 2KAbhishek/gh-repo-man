@@ -49,7 +49,7 @@ func TestCloneReposWithExistingDirectories(t *testing.T) {
 	}
 
 	existingRepoPath := filepath.Join(env.tmpDir, "Projects", "testuser", "existing-repo")
-	err := os.MkdirAll(existingRepoPath, 0755)
+	err := os.MkdirAll(existingRepoPath, 0o755)
 	if err != nil {
 		t.Fatalf("Failed to create existing repo directory: %v", err)
 	}
@@ -130,7 +130,7 @@ func TestHandlePostCloneWithExistingRepos(t *testing.T) {
 
 	for _, repo := range repos {
 		repoPath := filepath.Join(env.tmpDir, "Projects", "testuser", repo.Name)
-		err := os.MkdirAll(repoPath, 0755)
+		err := os.MkdirAll(repoPath, 0o755)
 		if err != nil {
 			t.Fatalf("Failed to create repo directory %s: %v", repoPath, err)
 		}
