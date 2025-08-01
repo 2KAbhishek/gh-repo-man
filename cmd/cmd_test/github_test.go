@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/2KAbhishek/gh-repo-manager/cmd"
+	"github.com/2KAbhishek/gh-repo-man/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -112,7 +112,7 @@ func TestHelperProcess(t *testing.T) {
 		handleGitCommand()
 	case "fzf":
 		handleFzfCommand()
-	case "gh-repo-manager":
+	case "gh-repo-man":
 		handleGhRepoManagerCommand()
 	case "which":
 		handleWhichCommand()

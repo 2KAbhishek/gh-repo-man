@@ -1,30 +1,30 @@
 <div align = "center">
 
-<h1><a href="https://github.com/2kabhishek/gh-repo-manager">gh-repo-manager</a></h1>
+<h1><a href="https://github.com/2kabhishek/gh-repo-man">gh-repo-man</a></h1>
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/blob/main/LICENSE">
-<img alt="License" src="https://img.shields.io/github/license/2kabhishek/gh-repo-manager?style=flat&color=eee&label="> </a>
+<a href="https://github.com/2KAbhishek/gh-repo-man/blob/main/LICENSE">
+<img alt="License" src="https://img.shields.io/github/license/2kabhishek/gh-repo-man?style=flat&color=eee&label="> </a>
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/graphs/contributors">
-<img alt="People" src="https://img.shields.io/github/contributors/2kabhishek/gh-repo-manager?style=flat&color=ffaaf2&label=People"> </a>
+<a href="https://github.com/2KAbhishek/gh-repo-man/graphs/contributors">
+<img alt="People" src="https://img.shields.io/github/contributors/2kabhishek/gh-repo-man?style=flat&color=ffaaf2&label=People"> </a>
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/stargazers">
-<img alt="Stars" src="https://img.shields.io/github/stars/2kabhishek/gh-repo-manager?style=flat&color=98c379&label=Stars"></a>
+<a href="https://github.com/2KAbhishek/gh-repo-man/stargazers">
+<img alt="Stars" src="https://img.shields.io/github/stars/2kabhishek/gh-repo-man?style=flat&color=98c379&label=Stars"></a>
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/network/members">
-<img alt="Forks" src="https://img.shields.io/github/forks/2kabhishek/gh-repo-manager?style=flat&color=66a8e0&label=Forks"> </a>
+<a href="https://github.com/2KAbhishek/gh-repo-man/network/members">
+<img alt="Forks" src="https://img.shields.io/github/forks/2kabhishek/gh-repo-man?style=flat&color=66a8e0&label=Forks"> </a>
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/watchers">
-<img alt="Watches" src="https://img.shields.io/github/watchers/2kabhishek/gh-repo-manager?style=flat&color=f5d08b&label=Watches"> </a>
+<a href="https://github.com/2KAbhishek/gh-repo-man/watchers">
+<img alt="Watches" src="https://img.shields.io/github/watchers/2kabhishek/gh-repo-man?style=flat&color=f5d08b&label=Watches"> </a>
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager/pulse">
-<img alt="Last Updated" src="https://img.shields.io/github/last-commit/2kabhishek/gh-repo-manager?style=flat&color=e06c75&label="> </a>
+<a href="https://github.com/2KAbhishek/gh-repo-man/pulse">
+<img alt="Last Updated" src="https://img.shields.io/github/last-commit/2kabhishek/gh-repo-man?style=flat&color=e06c75&label="> </a>
 
 <h3>Manage GitHub Repositories with Ease 📦🚀</h3>
 
 </div>
 
-gh-repo-manager is a `gh CLI extension` that allows `developers` to `browse, clone, and manage their GitHub repositories interactively`.
+gh-repo-man is a `gh CLI extension` that allows `developers` to `browse, clone, and manage their GitHub repositories interactively`.
 
 ## ✨ Features
 
@@ -49,21 +49,21 @@ gh-repo-manager is a `gh CLI extension` that allows `developers` to `browse, clo
 #### Via GitHub CLI Extensions
 
 ```bash
-gh extension install 2KAbhishek/gh-repo-manager
+gh extension install 2KAbhishek/gh-repo-man
 ```
 
 #### From Source
 
 ```bash
-git clone https://github.com/2KAbhishek/gh-repo-manager
-cd gh-repo-manager
-go build -o gh-repo-manager main.go
+git clone https://github.com/2KAbhishek/gh-repo-man
+cd gh-repo-man
+go build -o gh-repo-man main.go
 gh extension install .
 ```
 
 ## ⚙️ Configuration
 
-gh-repo-manager uses a YAML configuration file at `~/.config/gh-repo-man.yml` (or specify custom path with `--config`).
+gh-repo-man uses a YAML configuration file at `~/.config/gh-repo-man.yml` (or specify custom path with `--config`).
 
 See [`example-config.yml`](./example-config.yml) for comprehensive configuration options with detailed comments covering repository settings, UI customization, performance tuning, and integrations.
 
@@ -74,7 +74,7 @@ gh repo-manager [flags]
 
 Flags:
   -c, --config string     Path to configuration file (default "~/.config/gh-repo-man.yml")
-  -h, --help              Help for gh-repo-manager
+  -h, --help              Help for gh-repo-man
   -l, --language string   Filter by primary language
   -s, --sort string       Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)
   -t, --type string       Filter by repository type (archived, forked, private, template)
@@ -116,7 +116,7 @@ You tell me! Open an issue or PR with your ideas.
 
 ### 🌈 Inspiration
 
-gh-repo-manager was inspired by [octohub.nvim](https://github.com/2kabhishek/octohub.nvim), I wanted to create a standalone CLI tool that could be used independently of Neovim, while still providing a similar interactive experience for managing GitHub repositories.
+gh-repo-man was inspired by [octohub.nvim](https://github.com/2kabhishek/octohub.nvim), I wanted to create a standalone CLI tool that could be used independently of Neovim, while still providing a similar interactive experience for managing GitHub repositories.
 
 ### 💡 Challenges/Learnings
 
@@ -142,7 +142,7 @@ gh-repo-manager was inspired by [octohub.nvim](https://github.com/2kabhishek/oct
 
 <strong>⭐ hit the star button if you found this useful ⭐</strong><br>
 
-<a href="https://github.com/2KAbhishek/gh-repo-manager">Source</a>
+<a href="https://github.com/2KAbhishek/gh-repo-man">Source</a>
 | <a href="https://2kabhishek.github.io/blog" target="_blank">Blog </a>
 | <a href="https://twitter.com/2kabhishek" target="_blank">Twitter </a>
 | <a href="https://linkedin.com/in/2kabhishek" target="_blank">LinkedIn </a>

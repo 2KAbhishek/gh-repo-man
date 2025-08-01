@@ -1,4 +1,4 @@
-module github.com/2KAbhishek/gh-repo-manager
+module github.com/2KAbhishek/gh-repo-man
 
 go 1.24.4
 

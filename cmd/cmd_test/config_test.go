@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/2KAbhishek/gh-repo-manager/cmd"
+	"github.com/2KAbhishek/gh-repo-man/cmd"
 )
 
 func TestLoadConfig_Default(t *testing.T) {

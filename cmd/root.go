@@ -24,7 +24,7 @@ var LanguageFilter string
 var SortBy string
 
 var rootCmd = &cobra.Command{
-	Use:   "gh-repo-manager",
+	Use:   "gh-repo-man",
 	Short: "A gh extension to manage your repositories.",
 	Run: func(cmd *cobra.Command, args []string) {
 		repos, err := GetRepos(User)
@@ -43,9 +43,9 @@ var rootCmd = &cobra.Command{
 
 		var previewCmd string
 		if User != "" {
-			previewCmd = fmt.Sprintf("gh-repo-manager preview {} --user %s", User)
+			previewCmd = fmt.Sprintf("gh-repo-man preview {} --user %s", User)
 		} else {
-			previewCmd = "gh-repo-manager preview {}"
+			previewCmd = "gh-repo-man preview {}"
 		}
 		fzfArgs := []string{"--multi", "--preview", previewCmd}
 		if config.UI.ColorOutput {

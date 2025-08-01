@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/2KAbhishek/gh-repo-manager/cmd"
+	"github.com/2KAbhishek/gh-repo-man/cmd"
 )
 
 func TestParseTTL(t *testing.T) {

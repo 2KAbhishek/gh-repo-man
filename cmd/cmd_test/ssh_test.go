@@ -3,7 +3,7 @@ package cmd_test
 import (
 	"testing"
 
-	"github.com/2KAbhishek/gh-repo-manager/cmd"
+	"github.com/2KAbhishek/gh-repo-man/cmd"
 )
 
 func TestConvertToSSHURL(t *testing.T) {
@@ -34,8 +34,8 @@ func TestConvertToSSHURL(t *testing.T) {
 		},
 		{
 			name:     "handles complex repository names",
-			httpsURL: "https://github.com/2KAbhishek/gh-repo-manager",
-			expected: "git@github.com:2KAbhishek/gh-repo-manager.git",
+			httpsURL: "https://github.com/2KAbhishek/gh-repo-man",
+			expected: "git@github.com:2KAbhishek/gh-repo-man.git",
 		},
 	}
 

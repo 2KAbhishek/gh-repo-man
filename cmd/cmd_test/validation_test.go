@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/2KAbhishek/gh-repo-manager/cmd"
+	"github.com/2KAbhishek/gh-repo-man/cmd"
 )
 
 func TestValidateUsername(t *testing.T) {

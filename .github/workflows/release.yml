@@ -16,13 +16,13 @@ jobs:
           go-version: '1.22'
 
       - name: Build
-        run: go build -o gh-repo-manager main.go
+        run: go build -o gh-repo-man main.go
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: gh-repo-manager
-          path: gh-repo-manager
+          name: gh-repo-man
+          path: gh-repo-man
 
   release:
     name: Release
@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: gh-repo-manager
+          name: gh-repo-man
 
       - name: Create Release
         id: create_release
@@ -53,6 +53,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./gh-repo-manager
-          asset_name: gh-repo-manager
+          asset_path: ./gh-repo-man
+          asset_name: gh-repo-man
           asset_content_type: application/octet-stream
