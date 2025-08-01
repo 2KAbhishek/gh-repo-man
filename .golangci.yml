@@ -1,0 +1,92 @@
+run:
+  timeout: 5m
+  go: '1.23'
+
+linters:
+  enable:
+    - errcheck # Check for unchecked errors
+    - gofmt # Check whether code was gofmt-ed
+    - goimports # Check import formatting
+    - gosimple # Simplify code
+    - govet # Vet examines Go source code
+    - ineffassign # Detect ineffectual assignments
+    - staticcheck # Go static analysis
+    - typecheck # Parse and type-check Go code
+    - unused # Check for unused constants, variables, functions and types
+    - misspell # Find commonly misspelled English words
+    - unconvert # Remove unnecessary type conversions
+    - unparam # Report unused function parameters
+    - gocyclo # Compute cyclomatic complexities
+    - dupl # Tool for code clone detection
+    - goconst # Find repeated strings that could be replaced by a constant
+    - gofumpt # Stricter gofmt
+    - revive # Fast, configurable, extensible, flexible linter for Go
+    - gosec # Security-focused linter
+    - bodyclose # Check whether HTTP response body is closed successfully
+    - nilerr # Find code that returns nil even if it checks that the error is not nil
+    - noctx # Find sending HTTP request without context.Context
+    - rowserrcheck # Check whether Err of rows is checked
+    - sqlclosecheck # Check that sql.Rows and sql.Stmt are closed
+
+linters-settings:
+  errcheck:
+    exclude-functions:
+      - (io.ReadCloser).Close
+      - (io.Closer).Close
+      - (*os.File).Close
+      - (*bufio.Writer).Flush
+      - fmt.Print
+      - fmt.Printf
+      - fmt.Println
+      - fmt.Fprint
+      - fmt.Fprintf
+      - fmt.Fprintln
+
+  gocyclo:
+    min-complexity: 15
+
+  dupl:
+    threshold: 100
+
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+
+  revive:
+    rules:
+      - name: exported
+        disabled: true # Disable "exported X should have comment" for now
+      - name: package-comments
+        disabled: true # Disable package comment requirement
+
+  gosec:
+    excludes:
+      - G204 # Subprocess launched with variable (needed for gh CLI)
+      - G304 # File path provided as taint input (needed for config files)
+
+issues:
+  exclude-use-default: false
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - unparam
+        - goconst # Allow string repetition in tests
+
+    # Exclude known linter issues
+    - text: 'weak cryptographic primitive'
+      linters:
+        - gosec
+
+    # Allow main function without comments
+    - path: main\.go
+      text: 'should have a package comment'
+      linters:
+        - revive
+
+  max-issues-per-linter: 0
+  max-same-issues: 0
