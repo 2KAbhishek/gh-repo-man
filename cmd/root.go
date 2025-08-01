@@ -10,18 +10,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var config Config
-var configPath string
+var (
+	config     Config
+	configPath string
+)
 
 // SetConfig allows tests to override the config
 func SetConfig(cfg Config) {
 	config = cfg
 }
 
-var User string
-var RepoType string
-var LanguageFilter string
-var SortBy string
+var (
+	User           string
+	RepoType       string
+	LanguageFilter string
+	SortBy         string
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "gh-repo-man",

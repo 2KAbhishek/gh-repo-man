@@ -95,7 +95,9 @@ func captureStdout(t *testing.T, fn func()) string {
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	if _, err := buf.ReadFrom(r); err != nil {
+		panic(fmt.Sprintf("Failed to read from pipe: %v", err))
+	}
 	return buf.String()
 }
 

@@ -18,12 +18,12 @@ func GetCacheDir() (string, error) {
 		return "", fmt.Errorf("failed to expand cache directory path: %w", err)
 	}
 
-	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+	if err := os.MkdirAll(cacheDir, 0o750); err != nil {
 		return "", fmt.Errorf("failed to create cache directory: %w", err)
 	}
 
 	readmeDir := filepath.Join(cacheDir, "readmes")
-	if err := os.MkdirAll(readmeDir, 0755); err != nil {
+	if err := os.MkdirAll(readmeDir, 0o750); err != nil {
 		return "", fmt.Errorf("failed to create readme cache directory: %w", err)
 	}
 
@@ -121,7 +121,7 @@ func SaveReposToCache(user string, repos []Repo) error {
 		return fmt.Errorf("failed to marshal repos: %w", err)
 	}
 
-	if err := os.WriteFile(filePath, data, 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0o600); err != nil {
 		return fmt.Errorf("failed to write repos cache: %w", err)
 	}
 
@@ -153,8 +153,8 @@ func GetCachedCurrentUsername() (string, error) {
 		return "", err
 	}
 
-	if err := os.WriteFile(usernameCachePath, []byte(username), 0644); err != nil {
-		return username, nil
+	if err := os.WriteFile(usernameCachePath, []byte(username), 0o600); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to cache username: %v\n", err)
 	}
 
 	return username, nil
@@ -186,7 +186,7 @@ func SaveReadmeToCache(user, repoName, content string) error {
 	filename := fmt.Sprintf("%s_%s.md", user, repoName)
 	filePath := filepath.Join(cacheDir, "readmes", filename)
 
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(content), 0o600); err != nil {
 		return fmt.Errorf("failed to write readme cache: %w", err)
 	}
 
