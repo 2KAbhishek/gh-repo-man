@@ -22,6 +22,8 @@ var GeneralIcons = map[string]string{
 	"star":     " ",
 	"success":  " ",
 	"tag":      " ",
+	"tea":      " ",
+	"tmux":     " ",
 	"template": " ",
 	"watch":    " ",
 }
