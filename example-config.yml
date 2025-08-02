@@ -1,5 +1,5 @@
 # gh-repo-man configuration file
-# Place this file at ~/.config/gh-repo-man.yml or use --config flag to specify a custom path
+# Place this file at ~/.config/gh-repo-man/config.yml or use --config flag to specify a custom path
 
 # Repository management settings
 repos:
@@ -16,8 +16,8 @@ repos:
 
   # Default sorting preference (can be overridden by --sort flag)
   # Options: name, stars, forks, updated, created, issues, language, pushed, size
-  # Default: "name" (no default sorting)
-  sort_by: name
+  # Default: "updated"
+  sort_by: updated
 
   # Default repository type filter (can be overridden by --type flag)
   # Options: archived, forked, private, template
@@ -34,53 +34,36 @@ ui:
   # Default: false
   show_readme_in_preview: true
 
-  # Enable colored output
-  # Default: true
-  color_output: true
-
-  # Show progress indicators during operations
-  # Default: true
-  progress_indicators: true
-
   # Customizable icons - override any icon used in the application
   icons:
     # General UI icons - override any of the default icons
     general:
-      # Status and action icons
-      star: '⭐' # Repository stars
-      fork: '🍴' # Repository forks
-      watch: '👁' # Repository watchers
-      issue: '🐛' # Repository issues
-      success: '✅' # Successful operations
-      error: '❌' # Failed operations
-      info: 'ℹ️' # Informational messages
-      cloning: '📥' # Currently cloning
-      done: '✓' # Operation completed
-      editor: '📝' # Editor operations
+      archived: ' '
+      calendar: ' '
+      clock": ' '
+      cloning: ' '
+      disk: ' '
+      done: ' '
+      error: ' '
+      fork: ' '
+      forked: ' '
+      home: ' '
+      info: ' '
+      issue: ' '
+      link: ' '
+      owner: ' '
+      private: ' '
+      star: ' '
+      success: ' '
+      tag: ' '
+      template: ' '
+      watch: ' '
 
-      # Repository information icons
-      owner: '👤' # Repository owner
-      calendar: '📅' # Creation date
-      clock: '⏰' # Last updated
-      disk: '💾' # Disk usage
-      home: '🏠' # Homepage URL
-      tag: '🏷' # Repository topics/tags
-      link: '🔗' # Repository URL
-
-      # Repository type indicators
-      forked: '🍴' # Forked repository
-      archived: '📦' # Archived repository
-      private: '🔒' # Private repository
-      template: '📋' # Template repository
-
-    # Language icon overrides
+    # Language icon overrides, add yours in lower case, e.g.: python: ' '
     # Override the default icon for any programming language
     languages:
-      go: '🚀' # Override default Go gopher with rocket
-      python: '🐍' # Keep default snake
-      javascript: '⚡' # Lightning bolt instead of scroll
-      rust: '🦀' # Keep default crab
-      java: '☕' # Keep default coffee
+      javascript: ' '
+      java: ' '
 
 # Performance and reliability settings
 performance:
@@ -109,24 +92,17 @@ performance:
 
 # External tool integrations
 integrations:
-  # Tea tmux session manager integration
-  tea:
-    # Enable tea integration
+  # post clone command to execute on repo path - can be used to open repo in tmux or editor
+  post_clone:
+    # Enable post clone command execution
     # Default: true
     enabled: true
 
-    # Automatically open repositories with tea after cloning
-    # Default: true
-    auto_open: true
+    # Which command to run after cloning a repository, I use it with tmux-tea: https://github.com/2kabhishek/tmux-tea
+    # Default: $EDITOR
+    command: $EDITOR
 
-  # Editor integration (fallback when tea is disabled/unavailable)
-  editor:
-    # Editor command to use
-    # Falls back to $EDITOR environment variable, then nvim
-    # Default: $EDITOR or nvim
-    command: nvim
-
-    # Additional arguments to pass to the editor
+    # Additional arguments to pass to the command
     # Default: []
     args: []
 
