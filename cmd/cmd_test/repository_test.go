@@ -80,14 +80,27 @@ func TestBuildRepoPreview(t *testing.T) {
 	t.Run("basic preview", func(t *testing.T) {
 		preview := cmd.BuildRepoPreview(repo)
 
-		if !strings.Contains(preview, "test-repo") {
-			t.Error("Preview should contain repository name")
+		expectedElements := []string{
+			"test-repo",
+			"Test description",
+			"go, cli",
+			"https://github.com/user/test-repo",
+			"100",
+			"50",
+			"30",
+			"20",
+			"user",
+			"2023-01-01",
+			"2023-01-02",
+			"1000 KB",
+			"https://example.com",
+			"Language: Go",
 		}
-		if !strings.Contains(preview, "Test description") {
-			t.Error("Preview should contain description")
-		}
-		if !strings.Contains(preview, "go, cli") {
-			t.Error("Preview should contain topics")
+
+		for _, element := range expectedElements {
+			if !strings.Contains(preview, element) {
+				t.Errorf("Preview should contain %q", element)
+			}
 		}
 	})
 

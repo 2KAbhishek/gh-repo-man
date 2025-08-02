@@ -77,6 +77,18 @@ func GetCommandInvocation() string {
 }
 
 func Execute() {
+	SetConfigAndUpdateIcons(LoadConfig(configPath))
+
+	if SortBy == "" {
+		SortBy = config.Repos.SortBy
+	}
+	if RepoType == "" {
+		RepoType = config.Repos.RepoType
+	}
+	if LanguageFilter == "" {
+		LanguageFilter = config.Repos.Language
+	}
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -89,22 +101,6 @@ func init() {
 	rootCmd.Flags().StringVarP(&RepoType, "type", "t", "", "Filter by repository type (archived, forked, private, template)")
 	rootCmd.Flags().StringVarP(&LanguageFilter, "language", "l", "", "Filter by primary language")
 	rootCmd.Flags().StringVarP(&SortBy, "sort", "s", "", "Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)")
-
-	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		SetConfigAndUpdateIcons(LoadConfig(configPath))
-
-		if SortBy == "" {
-			SortBy = config.Repos.SortBy
-		}
-		if RepoType == "" {
-			RepoType = config.Repos.RepoType
-		}
-		if LanguageFilter == "" {
-			LanguageFilter = config.Repos.Language
-		}
-	}
-
-	SetConfigAndUpdateIcons(LoadConfig(DefaultConfigPath))
 
 	PreviewCmd.Flags().StringVar(&previewUser, "user", "", "The user whose repositories to search for preview")
 	rootCmd.AddCommand(PreviewCmd)

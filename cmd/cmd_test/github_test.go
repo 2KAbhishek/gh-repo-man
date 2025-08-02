@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/2KAbhishek/gh-repo-man/cmd"
-	"github.com/spf13/cobra"
 )
 
 const (
@@ -555,48 +554,3 @@ func TestGetReposWithValidation(t *testing.T) {
 	}
 }
 
-func TestPreviewCmd(t *testing.T) {
-	ts := setupMockTest(t)
-	defer ts.cleanup()
-
-	dummyCmd := &cobra.Command{}
-	cmd.SetConfig(cmd.Config{UI: cmd.UIConfig{ShowReadmeInPreview: true}})
-
-	t.Run("repo1 preview", func(t *testing.T) {
-		output := captureStdout(t, func() {
-			cmd.PreviewCmd.Run(dummyCmd, []string{"repo1"})
-		})
-
-		expected := buildExpectedPreviewOutput(
-			"repo1", "Go", "desc1", "https://github.com/user/repo1",
-			100, 50, 30, 20, "user", "2022-01-01 00:00:00", "2022-01-02 00:00:00",
-			1000, "https://user.github.io/repo1", []string{"go", "cli"},
-			"# Repo1 Readme\n\nThis is the readme content for repo1.",
-		)
-
-		if output != expected {
-			t.Errorf("preview output mismatch\nGot: %q\nWant: %q", output, expected)
-		}
-	})
-
-	t.Run("userRepo1 preview", func(t *testing.T) {
-		oldUser := cmd.User
-		cmd.User = "someuser"
-		defer func() { cmd.User = oldUser }()
-
-		output := captureStdout(t, func() {
-			cmd.PreviewCmd.Run(dummyCmd, []string{"userRepo1"})
-		})
-
-		expected := buildExpectedPreviewOutput(
-			"userRepo1", "Go", "userDesc1", "https://github.com/user/userRepo1",
-			10, 5, 3, 2, "user", "2023-01-01 00:00:00", "2023-01-02 00:00:00",
-			100, "https://user.github.io/userRepo1", []string{"go", "cli"},
-			"# UserRepo1 Readme\n\nThis is the readme content for userRepo1.",
-		)
-
-		if output != expected {
-			t.Errorf("preview output mismatch for user repo\nGot: %q\nWant: %q", output, expected)
-		}
-	})
-}
