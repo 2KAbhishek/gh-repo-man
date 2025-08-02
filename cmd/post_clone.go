@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -11,67 +12,24 @@ func HandlePostClone(repos []Repo) error {
 	if len(repos) == 0 {
 		return nil
 	}
+	var cmdConfig = config.Integrations.PostClone
 
-	if config.Integrations.Tea.Enabled && IsTeaAvailable() {
-		if config.Integrations.Tea.AutoOpen {
-			return OpenWithTea(repos)
-		} else {
-			fmt.Printf("🍵 Tea integration enabled but auto_open is disabled. Repositories cloned successfully.\n")
-			return nil
-		}
+	if cmdConfig.Enabled {
+		return OpenWithCommand(repos, cmdConfig)
 	}
 
-	return OpenWithEditor(repos)
+	return nil
 }
 
-// IsTeaAvailable checks if tea command is available in PATH
-func IsTeaAvailable() bool {
-	cmd := ExecCommand("which", "tea")
-	err := cmd.Run()
-	return err == nil
-}
+// OpenWithCommand opens repositories with the configured command
+func OpenWithCommand(repos []Repo, cmdConfig CommandConfig) error {
+	command := os.ExpandEnv(cmdConfig.Command)
 
-// OpenWithTea opens repositories using tea tmux session manager
-func OpenWithTea(repos []Repo) error {
-	var paths []string
-	for _, repo := range repos {
-		targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
-		if err != nil {
-			return fmt.Errorf("failed to get target directory for %s: %w", repo.Name, err)
-		}
-		repoPath := filepath.Join(targetDir, repo.Name)
-		paths = append(paths, repoPath)
+	if !isCommandAvailable(command) {
+		return fmt.Errorf("command %s is not available in PATH", command)
 	}
 
-	if len(paths) == 0 {
-		return nil
-	}
-
-	if config.UI.ProgressIndicators {
-		fmt.Printf("%s Opening %d repositories with tea...\n", GetIcon("tea"), len(repos))
-	}
-
-	cmd := ExecCommand("tea", paths...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
-	return cmd.Run()
-}
-
-// OpenWithEditor opens repositories with the configured editor
-func OpenWithEditor(repos []Repo) error {
-	editorCmd := config.Integrations.Editor.Command
-
-	if editorCmd == "" {
-		fmt.Println("No editor configured, skipping post-clone editor opening.")
-		return nil
-	}
-
-	if config.UI.ProgressIndicators {
-		fmt.Printf("%s Opening %d repositories with %s...\n", GetIcon("editor"), len(repos), editorCmd)
-	}
-
+	fmt.Printf("%s Opening selected repos in %s\n", GetIcon("info"), command)
 	for _, repo := range repos {
 		targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
 		if err != nil {
@@ -79,21 +37,23 @@ func OpenWithEditor(repos []Repo) error {
 		}
 		repoPath := filepath.Join(targetDir, repo.Name)
 
-		if config.UI.ProgressIndicators {
-			fmt.Printf("Opening %s in %s\n", repo.Name, editorCmd)
-		}
-
-		args := append(config.Integrations.Editor.Args, repoPath)
-		cmd := ExecCommand(editorCmd, args...)
+		args := append(cmdConfig.Args, repoPath)
+		cmd := ExecCommand(command, args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
 
 		err = cmd.Run()
 		if err != nil {
-			fmt.Printf("Warning: Failed to open %s with %s: %v\n", repo.Name, editorCmd, err)
+			fmt.Printf("Failed to open %s with %s: %v\n", repo.Name, command, err)
 		}
 	}
 
 	return nil
+}
+
+// isCommandAvailable checks if tea command is available in PATH
+func isCommandAvailable(command string) bool {
+	_, err := exec.LookPath(command)
+	return err == nil
 }
