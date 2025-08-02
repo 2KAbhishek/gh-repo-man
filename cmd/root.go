@@ -46,10 +46,11 @@ var rootCmd = &cobra.Command{
 		}
 
 		var previewCmd string
+		cmdInvocation := GetCommandInvocation()
 		if User != "" {
-			previewCmd = fmt.Sprintf("gh-repo-man preview {} --user %s", User)
+			previewCmd = fmt.Sprintf("%s preview {} --user %s", cmdInvocation, User)
 		} else {
-			previewCmd = "gh-repo-man preview {}"
+			previewCmd = fmt.Sprintf("%s preview {}", cmdInvocation)
 		}
 		fzfArgs := []string{"--multi", "--preview", previewCmd}
 		if config.UI.ColorOutput {
@@ -100,6 +101,13 @@ var rootCmd = &cobra.Command{
 			fmt.Println("No repositories selected.")
 		}
 	},
+}
+
+func GetCommandInvocation() string {
+	if _, err := exec.LookPath("gh-repo-man"); err == nil {
+		return "gh-repo-man"
+	}
+	return "gh repo-man"
 }
 
 func Execute() {
