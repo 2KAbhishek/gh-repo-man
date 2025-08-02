@@ -23,8 +23,6 @@ type ReposConfig struct {
 
 type UIConfig struct {
 	ShowReadmeInPreview bool       `yaml:"show_readme_in_preview"`
-	ColorOutput         bool       `yaml:"color_output"`
-	ProgressIndicators  bool       `yaml:"progress_indicators"`
 	Icons               IconConfig `yaml:"icons"`
 }
 
@@ -40,12 +38,8 @@ type PerformanceConfig struct {
 	Cache               CacheConfig `yaml:"cache"`
 }
 
-type TeaConfig struct {
-	Enabled  bool `yaml:"enabled"`
-	AutoOpen bool `yaml:"auto_open"`
-}
-
-type EditorConfig struct {
+type CommandConfig struct {
+	Enabled bool     `yaml:"enabled"`
 	Command string   `yaml:"command"`
 	Args    []string `yaml:"args"`
 }
@@ -56,9 +50,8 @@ type GitConfig struct {
 }
 
 type IntegrationsConfig struct {
-	Tea    TeaConfig    `yaml:"tea"`
-	Editor EditorConfig `yaml:"editor"`
-	Git    GitConfig    `yaml:"git"`
+	Git       GitConfig     `yaml:"git"`
+	PostClone CommandConfig `yaml:"post_clone"`
 }
 
 type Config struct {
@@ -68,7 +61,7 @@ type Config struct {
 	Integrations IntegrationsConfig `yaml:"integrations"`
 }
 
-const DefaultConfigPath = "~/.config/gh-repo-man.yml"
+const DefaultConfigPath = "~/.config/gh-repo-man/config.yml"
 
 // LoadConfig loads configuration from the specified path with proper error handling
 func LoadConfig(path string) Config {
@@ -120,23 +113,16 @@ func GetProjectsDirForUser(username string) (string, error) {
 
 // getDefaultConfig returns the default configuration
 func getDefaultConfig() Config {
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "nvim"
-	}
-
 	return Config{
 		Repos: ReposConfig{
 			ProjectsDir: "~/Projects",
 			PerUserDir:  true,
-			SortBy:      "",
+			SortBy:      "updated",
 			RepoType:    "",
 			Language:    "",
 		},
 		UI: UIConfig{
 			ShowReadmeInPreview: false,
-			ColorOutput:         true,
-			ProgressIndicators:  true,
 			Icons: IconConfig{
 				General:   GeneralIcons,
 				Languages: LanguageIcons,
@@ -152,12 +138,9 @@ func getDefaultConfig() Config {
 			},
 		},
 		Integrations: IntegrationsConfig{
-			Tea: TeaConfig{
-				Enabled:  true,
-				AutoOpen: true,
-			},
-			Editor: EditorConfig{
-				Command: editor,
+			PostClone: CommandConfig{
+				Enabled: true,
+				Command: "tea",
 				Args:    []string{},
 			},
 			Git: GitConfig{
@@ -189,9 +172,6 @@ func applyDefaults(cfg Config) Config {
 	}
 	if cfg.Performance.Cache.Username == "" {
 		cfg.Performance.Cache.Username = defaults.Performance.Cache.Username
-	}
-	if cfg.Integrations.Editor.Command == "" {
-		cfg.Integrations.Editor.Command = defaults.Integrations.Editor.Command
 	}
 
 	if cfg.UI.Icons.General == nil {
