@@ -322,3 +322,56 @@ func TestGetReposWithValidation(t *testing.T) {
 		t.Errorf("GetRepos validation error should mention 'invalid username', got: %q", err.Error())
 	}
 }
+
+func TestGetCurrentUsername(t *testing.T) {
+	ts := setupMockTest(t)
+	defer ts.cleanup()
+
+	username, err := cmd.GetCurrentUsername()
+	if err != nil {
+		t.Errorf("GetCurrentUsername() returned error: %v", err)
+	}
+
+	if username != "testuser" {
+		t.Errorf("GetCurrentUsername() = %q, want %q", username, "testuser")
+	}
+}
+
+func TestGetReadme(t *testing.T) {
+	ts := setupMockTest(t)
+	defer ts.cleanup()
+
+	t.Run("existing readme", func(t *testing.T) {
+		content, err := cmd.GetReadme("user/repo1")
+		if err != nil {
+			t.Errorf("GetReadme() returned error: %v", err)
+		}
+
+		expected := "# Repo1 Readme\n\nThis is the readme content for repo1."
+		if content != expected {
+			t.Errorf("GetReadme() = %q, want %q", content, expected)
+		}
+	})
+
+	t.Run("nonexistent readme", func(t *testing.T) {
+		content, err := cmd.GetReadme("user/nonexistent")
+		if err != nil {
+			t.Errorf("GetReadme() for nonexistent repo should not error, got: %v", err)
+		}
+
+		if content != "" {
+			t.Errorf("GetReadme() for nonexistent repo should return empty string, got: %q", content)
+		}
+	})
+
+	t.Run("invalid repo format", func(t *testing.T) {
+		_, err := cmd.GetReadme("invalid-format")
+		if err == nil {
+			t.Error("GetReadme() with invalid format should return error")
+		}
+
+		if !strings.Contains(err.Error(), "invalid repository name format") {
+			t.Errorf("GetReadme() error should mention format, got: %q", err.Error())
+		}
+	})
+}
