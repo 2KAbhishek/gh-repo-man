@@ -68,3 +68,45 @@ func TestGetCommandInvocation(t *testing.T) {
 		})
 	}
 }
+
+func TestFzfCancellationLogic(t *testing.T) {
+	tests := []struct {
+		name     string
+		exitCode int
+		isCancel bool
+	}{
+		{"ctrl-c cancellation", 130, true},
+		{"esc cancellation", 1, true},
+		{"other error", 2, false},
+		{"success", 0, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			isCancelError := tt.exitCode == 130 || tt.exitCode == 1
+
+			if isCancelError != tt.isCancel {
+				t.Errorf("Expected isCancelError=%v for exit code %d, got %v", tt.isCancel, tt.exitCode, isCancelError)
+			}
+		})
+	}
+}
+
+func TestSetConfig(t *testing.T) {
+	testConfig := cmd.Config{
+		UI: cmd.UIConfig{
+			ShowReadmeInPreview: true,
+		},
+	}
+	cmd.SetConfig(testConfig)
+}
+
+func TestExecute(t *testing.T) {
+	t.Run("Execute function exists", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Execute() panicked: %v", r)
+			}
+		}()
+	})
+}

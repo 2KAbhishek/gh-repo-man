@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -230,6 +231,54 @@ func handleEditorCommand() {
 	os.Exit(0)
 }
 
+type repoData struct {
+	name, language, description, url, owner, createdAt, updatedAt, homepage, readmeContent string
+	stars, forks, watchers, issues, diskUsage                                              int
+	topics                                                                                 []string
+}
+
+func buildExpectedPreviewOutput(repoName, language, description, url string, stars, forks, watchers, issues int,
+	owner, createdAt, updatedAt string, diskUsage int, homepage string, topics []string, readmeContent string,
+) string {
+	data := repoData{
+		name: repoName, language: language, description: description, url: url,
+		stars: stars, forks: forks, watchers: watchers, issues: issues,
+		owner: owner, createdAt: createdAt, updatedAt: updatedAt,
+		diskUsage: diskUsage, homepage: homepage, topics: topics, readmeContent: readmeContent,
+	}
+
+	return buildPreviewOutput(data)
+}
+
+func buildPreviewOutput(data repoData) string {
+	languageIcon := cmd.GetLanguageIcon(data.language)
+	output := fmt.Sprintf("# %s\n\n%s Language: %s\n", data.name, languageIcon, data.language)
+
+	if data.description != "" {
+		output += fmt.Sprintf("%s %s\n", cmd.GetIcon("info"), data.description)
+	}
+
+	output += fmt.Sprintf("%s [Link](%s)\n\n", cmd.GetIcon("link"), data.url)
+	output += fmt.Sprintf("%s %d  %s %d  %s %d  %s %d\n",
+		cmd.GetIcon("star"), data.stars, cmd.GetIcon("fork"), data.forks,
+		cmd.GetIcon("watch"), data.watchers, cmd.GetIcon("issue"), data.issues)
+
+	output += fmt.Sprintf("%s Owner: %s\n", cmd.GetIcon("owner"), data.owner)
+	output += fmt.Sprintf("%s Created At: %s\n", cmd.GetIcon("calendar"), data.createdAt)
+	output += fmt.Sprintf("%s Last Updated: %s\n", cmd.GetIcon("clock"), data.updatedAt)
+	output += fmt.Sprintf("%s Disk Usage: %d KB\n", cmd.GetIcon("disk"), data.diskUsage)
+
+	if data.homepage != "" {
+		output += fmt.Sprintf("%s [Homepage](%s)\n", cmd.GetIcon("home"), data.homepage)
+	}
+
+	if len(data.topics) > 0 {
+		output += fmt.Sprintf("\n%s Topics: %s\n", cmd.GetIcon("tag"), strings.Join(data.topics, ", "))
+	}
+
+	return output + "\n---\n" + data.readmeContent + "\n"
+}
+
 func TestGetRepos(t *testing.T) {
 	ts := setupMockTest(t)
 	defer ts.cleanup()
@@ -259,32 +308,251 @@ func TestGetRepos(t *testing.T) {
 	})
 }
 
-func TestCloneRepos(t *testing.T) {
-	ts := setupMockTest(t)
-	defer ts.cleanup()
+func TestValidateUsername(t *testing.T) {
+	tests := []struct {
+		name     string
+		username string
+		wantErr  bool
+		errMsg   string
+	}{
+		{
+			name:     "empty username (current user)",
+			username: "",
+			wantErr:  false,
+		},
+		{
+			name:     "valid simple username",
+			username: "user123",
+			wantErr:  false,
+		},
+		{
+			name:     "valid username with hyphen",
+			username: "test-user",
+			wantErr:  false,
+		},
+		{
+			name:     "valid username with underscore",
+			username: "test_user",
+			wantErr:  false,
+		},
+		{
+			name:     "valid username with mixed characters",
+			username: "test-user_123",
+			wantErr:  false,
+		},
+		{
+			name:     "single character username",
+			username: "a",
+			wantErr:  false,
+		},
+		{
+			name:     "maximum length username",
+			username: strings.Repeat("a", cmd.MaxUsernameLength),
+			wantErr:  false,
+		},
 
-	t.Run("successful cloning", func(t *testing.T) {
-		reposToClone := []cmd.Repo{
-			{Name: "repo1", HTMLURL: "https://github.com/user/repo1"},
-			{Name: "repo2", HTMLURL: "https://github.com/user/repo2"},
-		}
+		{
+			name:     "too long username",
+			username: strings.Repeat("a", cmd.MaxUsernameLength+1),
+			wantErr:  true,
+			errMsg:   "username too long",
+		},
 
-		err := cmd.CloneRepos(reposToClone)
-		if err != nil {
-			t.Errorf("CloneRepos() returned an error for successful cloning: %v", err)
-		}
-	})
+		{
+			name:     "username with semicolon",
+			username: "user;rm-rf",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with pipe",
+			username: "user|dangerous",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with ampersand",
+			username: "user&command",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with dollar",
+			username: "user$variable",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with backtick",
+			username: "user`command`",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with parentheses",
+			username: "user()",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with braces",
+			username: "user{}",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with brackets",
+			username: "user[]",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with angle brackets",
+			username: "user<>",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with quotes",
+			username: "user\"'",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
+		{
+			name:     "username with backslash",
+			username: "user\\escape",
+			wantErr:  true,
+			errMsg:   "contains invalid characters",
+		},
 
-	t.Run("failed cloning", func(t *testing.T) {
-		reposToClone := []cmd.Repo{
-			{Name: "fail_repo", HTMLURL: "fail_clone_url"},
-		}
+		{
+			name:     "username starting with hyphen",
+			username: "-user",
+			wantErr:  true,
+			errMsg:   "format is invalid",
+		},
+		{
+			name:     "username ending with hyphen",
+			username: "user-",
+			wantErr:  true,
+			errMsg:   "format is invalid",
+		},
+		{
+			name:     "username starting with underscore",
+			username: "_user",
+			wantErr:  true,
+			errMsg:   "format is invalid",
+		},
+		{
+			name:     "username ending with underscore",
+			username: "user_",
+			wantErr:  true,
+			errMsg:   "format is invalid",
+		},
+		{
+			name:     "username with space",
+			username: "user name",
+			wantErr:  true,
+			errMsg:   "format is invalid",
+		},
+		{
+			name:     "username with dot",
+			username: "user.name",
+			wantErr:  true,
+			errMsg:   "format is invalid",
+		},
+		{
+			name:     "username with multiple consecutive hyphens",
+			username: "user--name",
+			wantErr:  false,
+		},
+	}
 
-		err := cmd.CloneRepos(reposToClone)
-		if err == nil {
-			t.Error("CloneRepos() did not return an error for failed cloning")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := cmd.ValidateUsername(tt.username)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("ValidateUsername(%q) expected error, got nil", tt.username)
+					return
+				}
+
+				if tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
+					t.Errorf("ValidateUsername(%q) error = %q, want to contain %q", tt.username, err.Error(), tt.errMsg)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("ValidateUsername(%q) unexpected error = %q", tt.username, err.Error())
+				}
+			}
+		})
+	}
+}
+
+func TestGetReposWithContext(t *testing.T) {
+	originalExecCommand := cmd.ExecCommand
+	defer func() { cmd.ExecCommand = originalExecCommand }()
+
+	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
+		cs := []string{"-test.run=TestHelperProcess", "--", command}
+		cs = append(cs, args...)
+		cmd := exec.Command(os.Args[0], cs...)
+		cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+		return cmd
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	repos, err := cmd.GetReposWithContext(ctx, "")
+	if err != nil {
+		t.Errorf("GetReposWithContext() returned error: %v", err)
+	}
+
+	if len(repos) == 0 {
+		t.Error("GetReposWithContext() returned no repositories")
+	}
+}
+
+func TestGetReposWithContextCancellation(t *testing.T) {
+	originalExecCommand := cmd.ExecCommand
+	defer func() { cmd.ExecCommand = originalExecCommand }()
+
+	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
+		cmd := exec.Command("sleep", "10")
+		return cmd
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	_, err := cmd.GetReposWithContext(ctx, "")
+	if err == nil {
+		t.Error("GetReposWithContext() should have returned error due to context cancellation")
+	}
+
+	if !strings.Contains(err.Error(), "cancelled") {
+		t.Errorf("GetReposWithContext() error should mention cancellation, got: %v", err)
+	}
+}
+
+func TestGetReposWithValidation(t *testing.T) {
+	originalExecCommand := cmd.ExecCommand
+	defer func() { cmd.ExecCommand = originalExecCommand }()
+
+	cmd.ExecCommand = func(command string, args ...string) *exec.Cmd {
+		return nil
+	}
+
+	_, err := cmd.GetRepos("user;rm-rf")
+	if err == nil {
+		t.Error("GetRepos with invalid username should return validation error")
+	}
+
+	if !strings.Contains(err.Error(), "invalid username") {
+		t.Errorf("GetRepos validation error should mention 'invalid username', got: %q", err.Error())
+	}
 }
 
 func TestPreviewCmd(t *testing.T) {

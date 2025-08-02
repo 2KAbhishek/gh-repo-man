@@ -1,11 +1,107 @@
 package cmd_test
 
 import (
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/2KAbhishek/gh-repo-man/cmd"
 )
+
+func TestBuildRepoMap(t *testing.T) {
+	repos := []cmd.Repo{
+		{Name: "repo1", Description: "desc1"},
+		{Name: "repo2", Description: "desc2"},
+		{Name: "repo3", Description: "desc3"},
+	}
+
+	repoMap := cmd.BuildRepoMap(repos)
+
+	if len(repoMap) != 3 {
+		t.Errorf("BuildRepoMap() returned map with %d entries, want 3", len(repoMap))
+	}
+
+	if repoMap["repo1"].Description != "desc1" {
+		t.Errorf("BuildRepoMap()['repo1'].Description = %q, want 'desc1'", repoMap["repo1"].Description)
+	}
+
+	if repoMap["repo2"].Description != "desc2" {
+		t.Errorf("BuildRepoMap()['repo2'].Description = %q, want 'desc2'", repoMap["repo2"].Description)
+	}
+
+	if repoMap["repo3"].Description != "desc3" {
+		t.Errorf("BuildRepoMap()['repo3'].Description = %q, want 'desc3'", repoMap["repo3"].Description)
+	}
+}
+
+func TestSelectReposByNames(t *testing.T) {
+	repoMap := map[string]cmd.Repo{
+		"repo1": {Name: "repo1", Description: "desc1"},
+		"repo2": {Name: "repo2", Description: "desc2"},
+		"repo3": {Name: "repo3", Description: "desc3"},
+	}
+
+	selectedNames := []string{"repo1", "repo3", "", "nonexistent"}
+	result := cmd.SelectReposByNames(repoMap, selectedNames)
+
+	expected := []cmd.Repo{
+		{Name: "repo1", Description: "desc1"},
+		{Name: "repo3", Description: "desc3"},
+	}
+
+	if len(result) != 2 {
+		t.Errorf("SelectReposByNames() returned %d repos, want 2", len(result))
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("SelectReposByNames() = %v, want %v", result, expected)
+	}
+}
+
+func TestBuildRepoPreview(t *testing.T) {
+	repo := cmd.Repo{
+		Name:            "test-repo",
+		Description:     "Test description",
+		HTMLURL:         "https://github.com/user/test-repo",
+		StargazerCount:  100,
+		ForkCount:       50,
+		Watchers:        cmd.Count{TotalCount: 30},
+		Issues:          cmd.Count{TotalCount: 20},
+		Owner:           cmd.Owner{Login: "user"},
+		CreatedAt:       time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+		UpdatedAt:       time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
+		DiskUsage:       1000,
+		HomepageURL:     "https://example.com",
+		Topics:          []cmd.Topic{{Name: "go"}, {Name: "cli"}},
+		PrimaryLanguage: cmd.Language{Name: "Go"},
+	}
+
+	t.Run("basic preview", func(t *testing.T) {
+		preview := cmd.BuildRepoPreview(repo)
+
+		if !strings.Contains(preview, "test-repo") {
+			t.Error("Preview should contain repository name")
+		}
+		if !strings.Contains(preview, "Test description") {
+			t.Error("Preview should contain description")
+		}
+		if !strings.Contains(preview, "go, cli") {
+			t.Error("Preview should contain topics")
+		}
+	})
+
+	t.Run("with empty topics", func(t *testing.T) {
+		repoNoTopics := repo
+		repoNoTopics.Topics = []cmd.Topic{}
+
+		preview := cmd.BuildRepoPreview(repoNoTopics)
+
+		if strings.Contains(preview, "Topics:") {
+			t.Error("Preview should not contain Topics section when topics are empty")
+		}
+	})
+}
 
 func createTestReposForFilter() []cmd.Repo {
 	return []cmd.Repo{
@@ -174,7 +270,7 @@ func TestSortRepositories(t *testing.T) {
 
 	t.Run("sort by language", func(t *testing.T) {
 		sorted := cmd.SortRepositories(repos, "language")
-		expectedOrder := []string{"repo1", "repo4", "repo3", "repo2", "repo5"} // Go, Go, JavaScript, Python, TypeScript
+		expectedOrder := []string{"repo1", "repo4", "repo3", "repo2", "repo5"}
 		for i, expected := range expectedOrder {
 			if sorted[i].Name != expected {
 				t.Errorf("Expected repo at position %d to be %s, got %s", i, expected, sorted[i].Name)
@@ -184,14 +280,14 @@ func TestSortRepositories(t *testing.T) {
 
 	t.Run("sort by updated", func(t *testing.T) {
 		sorted := cmd.SortRepositories(repos, "updated")
-		if sorted[0].Name != "repo4" { // Most recent update: 2023-08-01
+		if sorted[0].Name != "repo4" {
 			t.Errorf("Expected first repo to be repo4 (most recently updated)")
 		}
 	})
 
 	t.Run("sort by created", func(t *testing.T) {
 		sorted := cmd.SortRepositories(repos, "created")
-		if sorted[0].Name != "repo5" { // Most recent creation: 2023-05-01
+		if sorted[0].Name != "repo5" {
 			t.Errorf("Expected first repo to be repo5 (most recently created)")
 		}
 	})
@@ -208,7 +304,7 @@ func TestSortRepositories(t *testing.T) {
 		if len(sorted) != len(repos) {
 			t.Errorf("Expected same number of repos")
 		}
-		// Should maintain original order
+
 		if sorted[0].Name != "repo1" {
 			t.Errorf("Expected first repo to remain repo1")
 		}
