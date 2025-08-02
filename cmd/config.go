@@ -104,6 +104,20 @@ func SetConfigAndUpdateIcons(cfg Config) {
 	config = cfg
 }
 
+// GetProjectsDirForUser returns the target directory for a specific user's repositories
+func GetProjectsDirForUser(username string) (string, error) {
+	projectsDir, err := expandPath(config.Repos.ProjectsDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to expand projects directory: %w", err)
+	}
+
+	if config.Repos.PerUserDir {
+		return filepath.Join(projectsDir, username), nil
+	}
+
+	return projectsDir, nil
+}
+
 // getDefaultConfig returns the default configuration
 func getDefaultConfig() Config {
 	editor := os.Getenv("EDITOR")
@@ -215,18 +229,4 @@ func validateConfig(cfg Config) error {
 	}
 
 	return nil
-}
-
-// GetProjectsDirForUser returns the target directory for a specific user's repositories
-func GetProjectsDirForUser(username string) (string, error) {
-	projectsDir, err := expandPath(config.Repos.ProjectsDir)
-	if err != nil {
-		return "", fmt.Errorf("failed to expand projects directory: %w", err)
-	}
-
-	if config.Repos.PerUserDir {
-		return filepath.Join(projectsDir, username), nil
-	}
-
-	return projectsDir, nil
 }
