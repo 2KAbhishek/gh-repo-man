@@ -65,7 +65,7 @@ var PreviewCmd = &cobra.Command{
 			return
 		}
 
-		displayRepoPreview(*targetRepo)
+		fmt.Print(buildRepoPreview(*targetRepo))
 	},
 }
 
@@ -227,71 +227,59 @@ func findRepoByName(repos []Repo, name string) *Repo {
 	return nil
 }
 
-func formatRepoHeader(repo Repo) {
+func buildRepoPreview(repo Repo) string {
+	var b strings.Builder
+
 	languageIcon := GetLanguageIcon(repo.PrimaryLanguage.Name)
-	fmt.Printf("# %s\n\n%s Language: %s\n", repo.Name, languageIcon, repo.PrimaryLanguage.Name)
+	b.WriteString(fmt.Sprintf("# %s\n\n%s Language: %s\n", repo.Name, languageIcon, repo.PrimaryLanguage.Name))
 
 	if repo.Description != "" {
-		fmt.Printf("%s %s\n", GetIcon("info"), repo.Description)
+		b.WriteString(fmt.Sprintf("%s %s\n", GetIcon("info"), repo.Description))
 	}
-}
 
-func formatRepoStats(repo Repo) {
-	fmt.Printf("%s [Link](%s)\n\n", GetIcon("link"), repo.HTMLURL)
-	fmt.Printf("%s %d  %s %d  %s %d  %s %d\n",
+	b.WriteString(fmt.Sprintf("%s [Link](%s)\n\n", GetIcon("link"), repo.HTMLURL))
+	b.WriteString(fmt.Sprintf("%s %d  %s %d  %s %d  %s %d\n",
 		GetIcon("star"), repo.StargazerCount,
 		GetIcon("fork"), repo.ForkCount,
 		GetIcon("watch"), repo.Watchers.TotalCount,
 		GetIcon("issue"), repo.Issues.TotalCount,
-	)
-	fmt.Printf("%s Owner: %s\n", GetIcon("owner"), repo.Owner.Login)
-	fmt.Printf("%s Created At: %s\n", GetIcon("calendar"), repo.CreatedAt.Format("2006-01-02 15:04:05"))
-	fmt.Printf("%s Last Updated: %s\n", GetIcon("clock"), repo.UpdatedAt.Format("2006-01-02 15:04:05"))
-	fmt.Printf("%s Disk Usage: %d KB\n", GetIcon("disk"), repo.DiskUsage)
-}
+	))
+	b.WriteString(fmt.Sprintf("%s Owner: %s\n", GetIcon("owner"), repo.Owner.Login))
+	b.WriteString(fmt.Sprintf("%s Created At: %s\n", GetIcon("calendar"), repo.CreatedAt.Format("2006-01-02 15:04:05")))
+	b.WriteString(fmt.Sprintf("%s Last Updated: %s\n", GetIcon("clock"), repo.UpdatedAt.Format("2006-01-02 15:04:05")))
+	b.WriteString(fmt.Sprintf("%s Disk Usage: %d KB\n", GetIcon("disk"), repo.DiskUsage))
 
-func formatRepoFlags(repo Repo) {
 	if repo.HomepageURL != "" {
-		fmt.Printf("%s [Homepage](%s)\n", GetIcon("home"), repo.HomepageURL)
+		b.WriteString(fmt.Sprintf("%s [Homepage](%s)\n", GetIcon("home"), repo.HomepageURL))
 	}
 	if repo.IsFork {
-		fmt.Printf("\n%s Forked\n", GetIcon("forked"))
+		b.WriteString(fmt.Sprintf("\n%s Forked\n", GetIcon("forked")))
 	}
 	if repo.IsArchived {
-		fmt.Printf("\n%s Archived\n", GetIcon("archived"))
+		b.WriteString(fmt.Sprintf("\n%s Archived\n", GetIcon("archived")))
 	}
 	if repo.IsPrivate {
-		fmt.Printf("\n%s Private\n", GetIcon("private"))
+		b.WriteString(fmt.Sprintf("\n%s Private\n", GetIcon("private")))
 	}
 	if repo.IsTemplate {
-		fmt.Printf("\n%s Template\n", GetIcon("template"))
+		b.WriteString(fmt.Sprintf("\n%s Template\n", GetIcon("template")))
 	}
 	if len(repo.Topics) > 0 {
-		fmt.Printf("\n%s Topics: %s\n", GetIcon("tag"), strings.Join(repo.TopicNames(), ", "))
-	}
-}
-
-func formatRepoReadme(repo Repo) {
-	if !config.UI.ShowReadmeInPreview {
-		return
+		b.WriteString(fmt.Sprintf("\n%s Topics: %s\n", GetIcon("tag"), strings.Join(repo.TopicNames(), ", ")))
 	}
 
-	fmt.Print("\n---\n")
-	readmeContent, err := GetReadme(repo.Owner.Login + "/" + repo.Name)
-	if err != nil {
-		fmt.Println("Error fetching README:", err)
-		return
+	if config.UI.ShowReadmeInPreview {
+		b.WriteString("\n---\n")
+		readmeContent, err := GetReadme(repo.Owner.Login + "/" + repo.Name)
+		if err != nil {
+			b.WriteString(fmt.Sprintf("Error fetching README: %s\n", err))
+		} else if readmeContent != "" {
+			b.WriteString(readmeContent)
+			b.WriteString("\n")
+		} else {
+			b.WriteString("No README found.\n")
+		}
 	}
-	if readmeContent != "" {
-		fmt.Println(readmeContent)
-	} else {
-		fmt.Println("No README found.")
-	}
-}
 
-func displayRepoPreview(repo Repo) {
-	formatRepoHeader(repo)
-	formatRepoStats(repo)
-	formatRepoFlags(repo)
-	formatRepoReadme(repo)
+	return b.String()
 }
