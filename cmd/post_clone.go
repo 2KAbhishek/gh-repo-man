@@ -12,7 +12,7 @@ func HandlePostClone(repos []Repo) error {
 	if len(repos) == 0 {
 		return nil
 	}
-	var cmdConfig = config.Integrations.PostClone
+	cmdConfig := config.Integrations.PostClone
 
 	if cmdConfig.Enabled {
 		return OpenWithCommand(repos, cmdConfig)

@@ -1,7 +1,6 @@
 package cmd_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -84,23 +83,6 @@ func (ts *mockTestSetup) cleanup() {
 	cmd.ExecCommand = ts.originalExecCmd
 }
 
-func captureStdout(t *testing.T, fn func()) string {
-	oldStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	fn()
-
-	w.Close()
-	os.Stdout = oldStdout
-
-	var buf bytes.Buffer
-	if _, err := buf.ReadFrom(r); err != nil {
-		panic(fmt.Sprintf("Failed to read from pipe: %v", err))
-	}
-	return buf.String()
-}
-
 func TestHelperProcess(t *testing.T) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
 		return
@@ -114,8 +96,6 @@ func TestHelperProcess(t *testing.T) {
 		handleGitCommand()
 	case "fzf":
 		handleFzfCommand()
-	case "gh-repo-man":
-		handleGhRepoManagerCommand()
 	case "which":
 		handleWhichCommand()
 	case "tea":
@@ -183,35 +163,6 @@ func handleFzfCommand() {
 	fmt.Fprint(os.Stdout, "repo1\n")
 }
 
-func handleGhRepoManagerCommand() {
-	if os.Args[4] == "preview" && len(os.Args) > 5 {
-		repoName := os.Args[5]
-		switch repoName {
-		case "repo1":
-			printMockPreview("repo1", "desc1", "https://github.com/user/repo1", 100, 50, 30, 20, "user", "2022-01-01 00:00:00", "2022-01-02 00:00:00", 1000, "https://user.github.io/repo1", "go, cli", "# Repo1 Readme\n\nThis is the readme content for repo1.")
-		case "userRepo1":
-			printMockPreview("userRepo1", "userDesc1", "https://github.com/user/userRepo1", 10, 5, 3, 2, "user", "2023-01-01 00:00:00", "2023-01-02 00:00:00", 100, "https://user.github.io/userRepo1", "go, cli", "# UserRepo1 Readme\n\nThis is the readme content for userRepo1.")
-		default:
-			fmt.Printf("Repository %s not found.\n", repoName)
-		}
-	}
-}
-
-func printMockPreview(name, desc, url string, stars, forks, watchers, issues int, owner, createdAt, updatedAt string, diskUsage int, homepage, topics, readme string) {
-	fmt.Printf("# %s\n\n%s Language: %s\n", name, "🐹", "Go")
-	fmt.Printf("ℹ️ %s\n", desc)
-	fmt.Printf("🔗 [Link](%s)\n\n", url)
-	fmt.Printf("⭐ %d  🍴 %d  👁 %d  🐛 %d\n", stars, forks, watchers, issues)
-	fmt.Printf("👤 Owner: %s\n", owner)
-	fmt.Printf("📅 Created At: %s\n", createdAt)
-	fmt.Printf("⏰ Last Updated: %s\n", updatedAt)
-	fmt.Printf("💾 Disk Usage: %d KB\n", diskUsage)
-	fmt.Printf("🏠 [Homepage](%s)\n", homepage)
-	fmt.Printf("\n🏷 Topics: %s\n", topics)
-	fmt.Print("\n---\n")
-	fmt.Println(readme)
-}
-
 func handleWhichCommand() {
 	if len(os.Args) > 4 && os.Args[4] == "tea" {
 		if os.Getenv("MOCK_TEA_AVAILABLE") == "true" {
@@ -228,54 +179,6 @@ func handleTeaCommand() {
 
 func handleEditorCommand() {
 	os.Exit(0)
-}
-
-type repoData struct {
-	name, language, description, url, owner, createdAt, updatedAt, homepage, readmeContent string
-	stars, forks, watchers, issues, diskUsage                                              int
-	topics                                                                                 []string
-}
-
-func buildExpectedPreviewOutput(repoName, language, description, url string, stars, forks, watchers, issues int,
-	owner, createdAt, updatedAt string, diskUsage int, homepage string, topics []string, readmeContent string,
-) string {
-	data := repoData{
-		name: repoName, language: language, description: description, url: url,
-		stars: stars, forks: forks, watchers: watchers, issues: issues,
-		owner: owner, createdAt: createdAt, updatedAt: updatedAt,
-		diskUsage: diskUsage, homepage: homepage, topics: topics, readmeContent: readmeContent,
-	}
-
-	return buildPreviewOutput(data)
-}
-
-func buildPreviewOutput(data repoData) string {
-	languageIcon := cmd.GetLanguageIcon(data.language)
-	output := fmt.Sprintf("# %s\n\n%s Language: %s\n", data.name, languageIcon, data.language)
-
-	if data.description != "" {
-		output += fmt.Sprintf("%s %s\n", cmd.GetIcon("info"), data.description)
-	}
-
-	output += fmt.Sprintf("%s [Link](%s)\n\n", cmd.GetIcon("link"), data.url)
-	output += fmt.Sprintf("%s %d  %s %d  %s %d  %s %d\n",
-		cmd.GetIcon("star"), data.stars, cmd.GetIcon("fork"), data.forks,
-		cmd.GetIcon("watch"), data.watchers, cmd.GetIcon("issue"), data.issues)
-
-	output += fmt.Sprintf("%s Owner: %s\n", cmd.GetIcon("owner"), data.owner)
-	output += fmt.Sprintf("%s Created At: %s\n", cmd.GetIcon("calendar"), data.createdAt)
-	output += fmt.Sprintf("%s Last Updated: %s\n", cmd.GetIcon("clock"), data.updatedAt)
-	output += fmt.Sprintf("%s Disk Usage: %d KB\n", cmd.GetIcon("disk"), data.diskUsage)
-
-	if data.homepage != "" {
-		output += fmt.Sprintf("%s [Homepage](%s)\n", cmd.GetIcon("home"), data.homepage)
-	}
-
-	if len(data.topics) > 0 {
-		output += fmt.Sprintf("\n%s Topics: %s\n", cmd.GetIcon("tag"), strings.Join(data.topics, ", "))
-	}
-
-	return output + "\n---\n" + data.readmeContent + "\n"
 }
 
 func TestGetRepos(t *testing.T) {
@@ -553,4 +456,3 @@ func TestGetReposWithValidation(t *testing.T) {
 		t.Errorf("GetRepos validation error should mention 'invalid username', got: %q", err.Error())
 	}
 }
-
