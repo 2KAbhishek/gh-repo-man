@@ -22,6 +22,12 @@
 
 <h3>Manage GitHub Repositories with Ease 📦🚀</h3>
 
+<figure>
+  <img src="docs/images/screenshot.png" alt="tdo.nvim in action">
+  <br/>
+  <figcaption>gh-repo-man in action</figcaption>
+</figure>
+
 </div>
 
 gh-repo-man is a `gh CLI extension` that allows `developers` to `browse, clone, and manage their GitHub repositories interactively`.
