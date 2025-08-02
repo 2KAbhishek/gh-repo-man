@@ -63,7 +63,7 @@ gh extension install .
 
 ## ⚙️ Configuration
 
-gh-repo-man uses a YAML configuration file at `~/.config/gh-repo-man.yml` (or specify custom path with `--config`).
+gh-repo-man uses a YAML configuration file at `~/.config/gh-repo-man/config.yml` (or specify custom path with `--config`).
 
 See [`example-config.yml`](./example-config.yml) for comprehensive configuration options with detailed comments covering repository settings, UI customization, performance tuning, and integrations.
 
@@ -81,7 +81,7 @@ gh-repo-man [flags]
 ### Flags
 
 ```
-  -c, --config string     Path to configuration file (default "~/.config/gh-repo-man.yml")
+  -c, --config string     Path to configuration file
   -h, --help              Help for repo-man
   -l, --language string   Filter by primary language
   -s, --sort string       Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)
