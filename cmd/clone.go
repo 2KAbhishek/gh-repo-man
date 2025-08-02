@@ -24,9 +24,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 	}
 
 	maxConcurrent := getMaxConcurrentClones()
-	if config.UI.ProgressIndicators {
-		fmt.Printf("Cloning %d repositories with up to %d concurrent operations...\n", len(repos), maxConcurrent)
-	}
+	fmt.Printf("Cloning %d repositories with up to %d concurrent operations...\n", len(repos), maxConcurrent)
 
 	sem := make(chan struct{}, maxConcurrent)
 	errChan := make(chan error, len(repos))
@@ -62,16 +60,12 @@ func cloneSingleRepo(ctx context.Context, index int, repo Repo, totalRepos int, 
 	}
 	defer func() { <-sem }()
 
-	if config.UI.ProgressIndicators {
-		fmt.Printf("[%d/%d] %s Cloning %s...\n", index+1, totalRepos, GetIcon("cloning"), repo.Name)
-	}
-
 	targetPath, err := prepareTargetDirectory(repo, index, totalRepos)
 	if err != nil {
 		errChan <- err
 		return
 	}
-	if targetPath == "" { // Already exists, skipped
+	if targetPath == "" {
 		return
 	}
 
@@ -93,7 +87,7 @@ func prepareTargetDirectory(repo Repo, index, totalRepos int) (string, error) {
 	targetPath := filepath.Join(targetDir, repo.Name)
 	if _, err := os.Stat(targetPath); err == nil {
 		fmt.Printf("[%d/%d] %s %s already exists in %s, skipping clone\n", index+1, totalRepos, GetIcon("info"), repo.Name, targetPath)
-		return "", nil // Empty string indicates skip
+		return "", nil
 	}
 
 	return targetPath, nil
@@ -105,11 +99,12 @@ func executeGitClone(ctx context.Context, repo Repo, targetPath string, index, t
 	args := buildGitCloneArgs(sshURL, targetPath)
 	cmd := ExecCommand("git", args...)
 
+	fmt.Printf("[%d/%d] %s Cloning %s...\n", index+1, totalRepos, GetIcon("cloning"), repo.Name)
+
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start clone for %s: %w", repo.Name, err)
 	}
 
-	// Handle cancellation
 	go func() {
 		<-ctx.Done()
 		if cmd.Process != nil {
@@ -170,6 +165,5 @@ func waitForCompletion(wg *sync.WaitGroup, errChan chan error, totalRepos int) e
 		return firstError
 	}
 
-	fmt.Printf("%s All %d repositories cloned successfully!\n", GetIcon("done"), totalRepos)
 	return nil
 }

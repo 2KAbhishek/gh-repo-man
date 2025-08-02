@@ -140,17 +140,10 @@ func handleRepoSelection(selectedNames []string, sortedRepos []Repo) error {
 	selectedRepos := SelectReposByNames(repoMap, selectedNames)
 
 	if len(selectedRepos) > 0 {
-		if config.UI.ProgressIndicators {
-			fmt.Println("Cloning selected repositories...")
-		}
 		err := CloneRepos(selectedRepos)
 		if err != nil {
 			return fmt.Errorf("error during cloning: %w", err)
 		}
-		if config.UI.ProgressIndicators {
-			fmt.Println("Cloning complete.")
-		}
-
 		err = HandlePostClone(selectedRepos)
 		if err != nil {
 			return fmt.Errorf("error during post-clone handling: %w", err)
@@ -173,9 +166,6 @@ func buildPreviewCommand(user string) string {
 func runFzfSelection(repoNames []string, user string) ([]string, error) {
 	previewCmd := buildPreviewCommand(user)
 	fzfArgs := []string{"--multi", "--preview", previewCmd}
-	if config.UI.ColorOutput {
-		fzfArgs = append(fzfArgs, "--ansi")
-	}
 
 	fzfCmd := exec.Command("fzf", fzfArgs...)
 	fzfCmd.Stdin = strings.NewReader(strings.Join(repoNames, "\n"))

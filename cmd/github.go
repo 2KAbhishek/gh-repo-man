@@ -51,12 +51,10 @@ func GetRepos(user string) ([]Repo, error) {
 		}
 	}
 
-	if config.UI.ProgressIndicators {
-		if user == "" {
-			fmt.Printf("%s Fetching your repositories from GitHub...\n", GetIcon("info"))
-		} else {
-			fmt.Printf("%s Fetching repositories for %s from GitHub...\n", GetIcon("info"), user)
-		}
+	if user == "" {
+		fmt.Printf("%s Fetching your repositories from GitHub...\n", GetIcon("info"))
+	} else {
+		fmt.Printf("%s Fetching repositories for %s from GitHub...\n", GetIcon("info"), user)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultContextTimeout)

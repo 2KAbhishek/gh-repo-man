@@ -42,7 +42,7 @@ func BuildRepoPreview(repo Repo) string {
 		b.WriteString(fmt.Sprintf("%s [Homepage](%s)\n", GetIcon("home"), repo.HomepageURL))
 	}
 	if repo.IsFork {
-		b.WriteString(fmt.Sprintf("\n%s Forked\n", GetIcon("forked")))
+		b.WriteString(fmt.Sprintf("\n%s Forked\n", GetIcon("fork")))
 	}
 	if repo.IsArchived {
 		b.WriteString(fmt.Sprintf("\n%s Archived\n", GetIcon("archived")))
