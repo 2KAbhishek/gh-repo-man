@@ -6,9 +6,21 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
+
+// ConvertToSSHURL converts GitHub HTTPS URLs to SSH format
+func ConvertToSSHURL(httpsURL string) string {
+	if !strings.HasPrefix(httpsURL, "https://github.com/") {
+		return httpsURL
+	}
+
+	path := strings.TrimPrefix(httpsURL, "https://github.com/")
+	path = strings.TrimSuffix(path, ".git")
+	return fmt.Sprintf("git@github.com:%s.git", path)
+}
 
 // CloneRepos clones repositories with default timeout and concurrency
 func CloneRepos(repos []Repo) error {
@@ -38,7 +50,7 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 		}(i, repo)
 	}
 
-	return waitForCompletion(&wg, errChan, len(repos))
+	return waitForCompletion(&wg, errChan)
 }
 
 // getMaxConcurrentClones returns maximum concurrent clone operations
@@ -148,7 +160,7 @@ func handleCloneError(ctx context.Context, err error, repoName string) error {
 }
 
 // waitForCompletion waits for all clone operations to complete
-func waitForCompletion(wg *sync.WaitGroup, errChan chan error, totalRepos int) error {
+func waitForCompletion(wg *sync.WaitGroup, errChan chan error) error {
 	go func() {
 		wg.Wait()
 		close(errChan)

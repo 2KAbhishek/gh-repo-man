@@ -180,18 +180,6 @@ func GetReadme(repoFullName string) (string, error) {
 	return content, nil
 }
 
-// ConvertToSSHURL converts an HTTPS GitHub URL to SSH format
-func ConvertToSSHURL(httpsURL string) string {
-	if after, ok := strings.CutPrefix(httpsURL, "https://github.com/"); ok {
-		path := after
-		if !strings.HasSuffix(path, ".git") {
-			path = path + ".git"
-		}
-		return "git@github.com:" + path
-	}
-	return httpsURL
-}
-
 // buildRepoListArgs builds command arguments for fetching repositories
 func buildRepoListArgs(user string) []string {
 	repoLimit := config.Performance.RepoLimit
