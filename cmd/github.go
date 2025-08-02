@@ -51,6 +51,20 @@ type Repo struct {
 	PrimaryLanguage Language  `json:"primaryLanguage"`
 }
 
+const (
+	JSONFields            = "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage"
+	DefaultRepoLimit      = "1000"
+	MaxUsernameLength     = 39
+	MinUsernameLength     = 1
+	MaxConcurrentClones   = 3
+	CloneTimeoutMinutes   = 10
+	DefaultContextTimeout = 5 * time.Minute
+)
+
+var usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-_]*[a-zA-Z0-9])?$`)
+
+var ExecCommand = exec.Command
+
 // TopicNames extracts topic names as strings
 func (r *Repo) TopicNames() []string {
 	names := make([]string, len(r.Topics))
@@ -81,20 +95,6 @@ func SelectReposByNames(repoMap map[string]Repo, selectedNames []string) []Repo 
 	}
 	return selectedRepos
 }
-
-const (
-	JSONFields            = "name,description,url,stargazerCount,forkCount,watchers,issues,owner,createdAt,updatedAt,diskUsage,homepageUrl,isFork,isArchived,isPrivate,isTemplate,repositoryTopics,primaryLanguage"
-	DefaultRepoLimit      = "1000"
-	MaxUsernameLength     = 39
-	MinUsernameLength     = 1
-	MaxConcurrentClones   = 3
-	CloneTimeoutMinutes   = 10
-	DefaultContextTimeout = 5 * time.Minute
-)
-
-var usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-_]*[a-zA-Z0-9])?$`)
-
-var ExecCommand = exec.Command
 
 // ValidateUsername ensures username is safe and follows GitHub rules
 func ValidateUsername(username string) error {
@@ -155,25 +155,6 @@ func GetRepos(user string) ([]Repo, error) {
 	}
 
 	return repos, nil
-}
-
-func buildRepoListArgs(user string) []string {
-	repoLimit := config.Performance.RepoLimit
-	if repoLimit == "" {
-		repoLimit = DefaultRepoLimit
-	}
-	args := []string{"repo", "list", "--limit", repoLimit, "--json", JSONFields}
-	if user != "" {
-		args = append(args, user)
-	}
-	return args
-}
-
-func getUserContext(user string) string {
-	if user != "" {
-		return fmt.Sprintf("user '%s'", user)
-	}
-	return "current user"
 }
 
 // GetReposWithContext fetches repositories with context support for cancellation
@@ -251,130 +232,6 @@ func CloneReposWithContext(ctx context.Context, repos []Repo) error {
 	}
 
 	return waitForCompletion(&wg, errChan, len(repos))
-}
-
-func getMaxConcurrentClones() int {
-	maxConcurrent := config.Performance.MaxConcurrentClones
-	if maxConcurrent == 0 {
-		maxConcurrent = MaxConcurrentClones
-	}
-	return maxConcurrent
-}
-
-func cloneSingleRepo(ctx context.Context, index int, repo Repo, totalRepos int, sem chan struct{}, errChan chan error) {
-	select {
-	case sem <- struct{}{}:
-	case <-ctx.Done():
-		errChan <- fmt.Errorf("clone of %s cancelled: %w", repo.Name, ctx.Err())
-		return
-	}
-	defer func() { <-sem }()
-
-	if config.UI.ProgressIndicators {
-		fmt.Printf("[%d/%d] %s Cloning %s...\n", index+1, totalRepos, GetIcon("cloning"), repo.Name)
-	}
-
-	targetPath, err := prepareTargetDirectory(repo, index, totalRepos)
-	if err != nil {
-		errChan <- err
-		return
-	}
-	if targetPath == "" { // Already exists, skipped
-		return
-	}
-
-	err = executeGitClone(ctx, repo, targetPath, index, totalRepos)
-	errChan <- err
-}
-
-func prepareTargetDirectory(repo Repo, index, totalRepos int) (string, error) {
-	targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
-	if err != nil {
-		return "", fmt.Errorf("failed to get target directory: %w", err)
-	}
-
-	if err := os.MkdirAll(targetDir, 0o750); err != nil {
-		return "", fmt.Errorf("failed to create target directory: %w", err)
-	}
-
-	targetPath := filepath.Join(targetDir, repo.Name)
-	if _, err := os.Stat(targetPath); err == nil {
-		fmt.Printf("[%d/%d] %s %s already exists in %s, skipping clone\n", index+1, totalRepos, GetIcon("info"), repo.Name, targetPath)
-		return "", nil // Empty string indicates skip
-	}
-
-	return targetPath, nil
-}
-
-func executeGitClone(ctx context.Context, repo Repo, targetPath string, index, totalRepos int) error {
-	sshURL := ConvertToSSHURL(repo.HTMLURL)
-	args := buildGitCloneArgs(sshURL, targetPath)
-	cmd := ExecCommand("git", args...)
-
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to start clone for %s: %w", repo.Name, err)
-	}
-
-	// Handle cancellation
-	go func() {
-		<-ctx.Done()
-		if cmd.Process != nil {
-			if killErr := cmd.Process.Kill(); killErr != nil {
-				fmt.Fprintf(os.Stderr, "Warning: Failed to kill process: %v\n", killErr)
-			}
-		}
-	}()
-
-	err := cmd.Wait()
-	if err != nil {
-		return handleCloneError(ctx, err, repo.Name)
-	}
-
-	fmt.Printf("[%d/%d] %s Successfully cloned %s to %s\n", index+1, totalRepos, GetIcon("success"), repo.Name, targetPath)
-	return nil
-}
-
-func buildGitCloneArgs(sshURL, targetPath string) []string {
-	args := []string{"clone"}
-
-	if config.Integrations.Git.CloneDepth > 0 {
-		args = append(args, "--depth", fmt.Sprintf("%d", config.Integrations.Git.CloneDepth))
-	}
-
-	args = append(args, config.Integrations.Git.CloneArgs...)
-	args = append(args, sshURL, targetPath)
-	return args
-}
-
-func handleCloneError(ctx context.Context, err error, repoName string) error {
-	if ctx.Err() != nil {
-		return fmt.Errorf("clone of %s cancelled: %w", repoName, ctx.Err())
-	}
-	if exitError, ok := err.(*exec.ExitError); ok {
-		return fmt.Errorf("failed to clone %s: %s", repoName, string(exitError.Stderr))
-	}
-	return fmt.Errorf("failed to clone %s: %w", repoName, err)
-}
-
-func waitForCompletion(wg *sync.WaitGroup, errChan chan error, totalRepos int) error {
-	go func() {
-		wg.Wait()
-		close(errChan)
-	}()
-
-	var firstError error
-	for err := range errChan {
-		if err != nil && firstError == nil {
-			firstError = err
-		}
-	}
-
-	if firstError != nil {
-		return firstError
-	}
-
-	fmt.Printf("%s All %d repositories cloned successfully!\n", GetIcon("done"), totalRepos)
-	return nil
 }
 
 // GetCurrentUsername fetches the current authenticated user's username
@@ -630,5 +487,148 @@ func OpenWithEditor(repos []Repo) error {
 		}
 	}
 
+	return nil
+}
+
+func buildRepoListArgs(user string) []string {
+	repoLimit := config.Performance.RepoLimit
+	if repoLimit == "" {
+		repoLimit = DefaultRepoLimit
+	}
+	args := []string{"repo", "list", "--limit", repoLimit, "--json", JSONFields}
+	if user != "" {
+		args = append(args, user)
+	}
+	return args
+}
+
+func getUserContext(user string) string {
+	if user != "" {
+		return fmt.Sprintf("user '%s'", user)
+	}
+	return "current user"
+}
+
+func getMaxConcurrentClones() int {
+	maxConcurrent := config.Performance.MaxConcurrentClones
+	if maxConcurrent == 0 {
+		maxConcurrent = MaxConcurrentClones
+	}
+	return maxConcurrent
+}
+
+func cloneSingleRepo(ctx context.Context, index int, repo Repo, totalRepos int, sem chan struct{}, errChan chan error) {
+	select {
+	case sem <- struct{}{}:
+	case <-ctx.Done():
+		errChan <- fmt.Errorf("clone of %s cancelled: %w", repo.Name, ctx.Err())
+		return
+	}
+	defer func() { <-sem }()
+
+	if config.UI.ProgressIndicators {
+		fmt.Printf("[%d/%d] %s Cloning %s...\n", index+1, totalRepos, GetIcon("cloning"), repo.Name)
+	}
+
+	targetPath, err := prepareTargetDirectory(repo, index, totalRepos)
+	if err != nil {
+		errChan <- err
+		return
+	}
+	if targetPath == "" { // Already exists, skipped
+		return
+	}
+
+	err = executeGitClone(ctx, repo, targetPath, index, totalRepos)
+	errChan <- err
+}
+
+func prepareTargetDirectory(repo Repo, index, totalRepos int) (string, error) {
+	targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
+	if err != nil {
+		return "", fmt.Errorf("failed to get target directory: %w", err)
+	}
+
+	if err := os.MkdirAll(targetDir, 0o750); err != nil {
+		return "", fmt.Errorf("failed to create target directory: %w", err)
+	}
+
+	targetPath := filepath.Join(targetDir, repo.Name)
+	if _, err := os.Stat(targetPath); err == nil {
+		fmt.Printf("[%d/%d] %s %s already exists in %s, skipping clone\n", index+1, totalRepos, GetIcon("info"), repo.Name, targetPath)
+		return "", nil // Empty string indicates skip
+	}
+
+	return targetPath, nil
+}
+
+func executeGitClone(ctx context.Context, repo Repo, targetPath string, index, totalRepos int) error {
+	sshURL := ConvertToSSHURL(repo.HTMLURL)
+	args := buildGitCloneArgs(sshURL, targetPath)
+	cmd := ExecCommand("git", args...)
+
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start clone for %s: %w", repo.Name, err)
+	}
+
+	// Handle cancellation
+	go func() {
+		<-ctx.Done()
+		if cmd.Process != nil {
+			if killErr := cmd.Process.Kill(); killErr != nil {
+				fmt.Fprintf(os.Stderr, "Warning: Failed to kill process: %v\n", killErr)
+			}
+		}
+	}()
+
+	err := cmd.Wait()
+	if err != nil {
+		return handleCloneError(ctx, err, repo.Name)
+	}
+
+	fmt.Printf("[%d/%d] %s Successfully cloned %s to %s\n", index+1, totalRepos, GetIcon("success"), repo.Name, targetPath)
+	return nil
+}
+
+func buildGitCloneArgs(sshURL, targetPath string) []string {
+	args := []string{"clone"}
+
+	if config.Integrations.Git.CloneDepth > 0 {
+		args = append(args, "--depth", fmt.Sprintf("%d", config.Integrations.Git.CloneDepth))
+	}
+
+	args = append(args, config.Integrations.Git.CloneArgs...)
+	args = append(args, sshURL, targetPath)
+	return args
+}
+
+func handleCloneError(ctx context.Context, err error, repoName string) error {
+	if ctx.Err() != nil {
+		return fmt.Errorf("clone of %s cancelled: %w", repoName, ctx.Err())
+	}
+	if exitError, ok := err.(*exec.ExitError); ok {
+		return fmt.Errorf("failed to clone %s: %s", repoName, string(exitError.Stderr))
+	}
+	return fmt.Errorf("failed to clone %s: %w", repoName, err)
+}
+
+func waitForCompletion(wg *sync.WaitGroup, errChan chan error, totalRepos int) error {
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	var firstError error
+	for err := range errChan {
+		if err != nil && firstError == nil {
+			firstError = err
+		}
+	}
+
+	if firstError != nil {
+		return firstError
+	}
+
+	fmt.Printf("%s All %d repositories cloned successfully!\n", GetIcon("done"), totalRepos)
 	return nil
 }
