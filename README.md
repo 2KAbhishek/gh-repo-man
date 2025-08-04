@@ -30,7 +30,7 @@
 
 </div>
 
-gh-repo-man is a `gh CLI extension` that allows `developers` to `browse, clone, and manage their GitHub repositories interactively`.
+gh-repo-man is a GitHub CLI extension that allows developers to browse, clone, and work with multiple repositories interactively.
 
 ## ✨ Features
 
