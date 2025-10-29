@@ -25,12 +25,18 @@ var (
 	RepoType       string
 	LanguageFilter string
 	SortBy         string
+	ProjectsDir    string
 )
 var previewUser string
 
 var rootCmd = &cobra.Command{
 	Use:   "gh-repo-man",
 	Short: "A gh extension to manage your repositories.",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if ProjectsDir != "" {
+			config.Repos.ProjectsDir = ProjectsDir
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		err := runMain()
 		if err != nil {
@@ -101,6 +107,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&RepoType, "type", "t", "", "Filter by repository type (archived, forked, private, template)")
 	rootCmd.Flags().StringVarP(&LanguageFilter, "language", "l", "", "Filter by primary language")
 	rootCmd.Flags().StringVarP(&SortBy, "sort", "s", "", "Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)")
+	rootCmd.Flags().StringVarP(&ProjectsDir, "dir", "d", "", "Directory where repositories will be cloned (overrides config)")
 
 	PreviewCmd.Flags().StringVar(&previewUser, "user", "", "The user whose repositories to search for preview")
 	rootCmd.AddCommand(PreviewCmd)

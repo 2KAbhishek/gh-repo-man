@@ -111,7 +111,7 @@ func executeGitClone(ctx context.Context, repo Repo, targetPath string, index, t
 	args := buildGitCloneArgs(sshURL, targetPath)
 	cmd := ExecCommand("git", args...)
 
-	fmt.Printf("[%d/%d] %s Cloning %s...\n", index+1, totalRepos, GetIcon("cloning"), repo.Name)
+	fmt.Printf("[%d/%d] %s Cloning %s to %s\n", index+1, totalRepos, GetIcon("cloning"), repo.Name, targetPath)
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start clone for %s: %w", repo.Name, err)

@@ -110,3 +110,82 @@ func TestExecute(t *testing.T) {
 		}()
 	})
 }
+
+func TestProjectsDirFlagOverride(t *testing.T) {
+	tests := []struct {
+		name              string
+		configProjectsDir string
+		flagProjectsDir   string
+		expectedDir       string
+	}{
+		{
+			name:              "flag overrides config",
+			configProjectsDir: "~/Projects",
+			flagProjectsDir:   "/tmp/custom",
+			expectedDir:       "/tmp/custom",
+		},
+		{
+			name:              "empty flag keeps config",
+			configProjectsDir: "~/Projects",
+			flagProjectsDir:   "",
+			expectedDir:       "~/Projects",
+		},
+		{
+			name:              "relative path flag",
+			configProjectsDir: "~/Projects",
+			flagProjectsDir:   ".",
+			expectedDir:       ".",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			originalConfig := cmd.Config{
+				Repos: cmd.ReposConfig{
+					ProjectsDir: tt.configProjectsDir,
+					PerUserDir:  true,
+				},
+			}
+			cmd.SetConfig(originalConfig)
+
+			cmd.ProjectsDir = tt.flagProjectsDir
+
+			if cmd.ProjectsDir != "" {
+				cfg := cmd.Config{
+					Repos: cmd.ReposConfig{
+						ProjectsDir: cmd.ProjectsDir,
+						PerUserDir:  originalConfig.Repos.PerUserDir,
+					},
+				}
+				cmd.SetConfig(cfg)
+			}
+
+			projectsDir, err := cmd.GetProjectsDirForUser("testuser")
+			if err != nil {
+				t.Fatalf("GetProjectsDirForUser() error = %v", err)
+			}
+
+			expectedPath := tt.expectedDir
+			if tt.expectedDir != "." && tt.expectedDir != "/tmp/custom" {
+				home, _ := os.UserHomeDir()
+				expectedPath = filepath.Join(home, "Projects")
+			}
+
+			if originalConfig.Repos.PerUserDir && tt.expectedDir != "." {
+				if tt.expectedDir == "/tmp/custom" {
+					expectedPath = filepath.Join("/tmp/custom", "testuser")
+				} else {
+					expectedPath = filepath.Join(expectedPath, "testuser")
+				}
+			}
+
+			if tt.flagProjectsDir == "." && originalConfig.Repos.PerUserDir {
+				expectedPath = filepath.Join(".", "testuser")
+			}
+
+			if projectsDir != expectedPath {
+				t.Errorf("Expected projects dir %q, got %q", expectedPath, projectsDir)
+			}
+		})
+	}
+}

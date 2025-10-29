@@ -88,6 +88,7 @@ gh-repo-man [flags]
 
 ```
   -c, --config string     Path to configuration file
+  -d, --dir string        Directory where repositories will be cloned (overrides config)
   -h, --help              Help for repo-man
   -l, --language string   Filter by primary language
   -s, --sort string       Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)
@@ -115,6 +116,12 @@ gh repo-man --type private
 
 # Use custom config file
 gh repo-man --config ~/my-config.yml
+
+# Clone to current directory
+gh repo-man --dir .
+
+# Clone to a specific directory
+gh repo-man --dir ~/workspace/projects
 ```
 
 ### Navigation
