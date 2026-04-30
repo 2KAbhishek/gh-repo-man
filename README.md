@@ -56,6 +56,7 @@ gh-repo-man is a GitHub CLI extension that allows developers to browse, clone, a
 
 ```bash
 gh extension install 2KAbhishek/gh-repo-man
+gh repo-man [flags]
 ```
 
 #### From Source
@@ -65,6 +66,7 @@ git clone https://github.com/2KAbhishek/gh-repo-man
 cd gh-repo-man
 go build -o gh-repo-man main.go
 gh extension install .
+gh repo-man [flags]
 ```
 
 ## ⚙️ Configuration
