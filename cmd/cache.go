@@ -99,7 +99,7 @@ func LoadReposFromCache(user string) ([]Repo, error) {
 	return repos, nil
 }
 
-func atomicWriteFile(filePath string, data []byte, perm os.FileMode) error {
+func atomicWriteFile(filePath string, data []byte) error {
 	dir := filepath.Dir(filePath)
 	tmpFile, err := os.CreateTemp(dir, ".tmp-*")
 	if err != nil {
@@ -112,7 +112,7 @@ func atomicWriteFile(filePath string, data []byte, perm os.FileMode) error {
 		_ = os.Remove(tmpName)
 	}()
 
-	if err := tmpFile.Chmod(perm); err != nil {
+	if err := tmpFile.Chmod(0o600); err != nil {
 		return err
 	}
 	if _, err := tmpFile.Write(data); err != nil {
@@ -150,7 +150,7 @@ func SaveReposToCache(user string, repos []Repo) error {
 		return fmt.Errorf("failed to marshal repos: %w", err)
 	}
 
-	if err := atomicWriteFile(filePath, data, 0o600); err != nil {
+	if err := atomicWriteFile(filePath, data); err != nil {
 		return fmt.Errorf("failed to write repos cache: %w", err)
 	}
 
@@ -177,7 +177,7 @@ func GetCachedCurrentUsername() (string, error) {
 			if !IsCacheValid(usernameCachePath, usernameCacheTTL) {
 				go func() {
 					if freshUser, err := GetCurrentUsername(); err == nil && freshUser != "" {
-						_ = atomicWriteFile(usernameCachePath, []byte(freshUser), 0o600)
+						_ = atomicWriteFile(usernameCachePath, []byte(freshUser))
 					}
 				}()
 			}
@@ -190,7 +190,7 @@ func GetCachedCurrentUsername() (string, error) {
 		return "", err
 	}
 
-	if err := atomicWriteFile(usernameCachePath, []byte(username), 0o600); err != nil {
+	if err := atomicWriteFile(usernameCachePath, []byte(username)); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Failed to cache username: %v\n", err)
 	}
 
@@ -223,7 +223,7 @@ func SaveReadmeToCache(user, repoName, content string) error {
 	filename := fmt.Sprintf("%s_%s.md", user, repoName)
 	filePath := filepath.Join(cacheDir, "readmes", filename)
 
-	if err := atomicWriteFile(filePath, []byte(content), 0o600); err != nil {
+	if err := atomicWriteFile(filePath, []byte(content)); err != nil {
 		return fmt.Errorf("failed to write readme cache: %w", err)
 	}
 
