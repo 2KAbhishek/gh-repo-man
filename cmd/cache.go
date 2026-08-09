@@ -230,25 +230,6 @@ func SaveReadmeToCache(user, repoName, content string) error {
 	return nil
 }
 
-func getReposCachePath(user string) (string, error) {
-	cacheDir, err := GetCacheDir()
-	if err != nil {
-		return "", err
-	}
-
-	actualUser := user
-	if user == "" {
-		cachedUser, err := GetCachedCurrentUsername()
-		if err != nil {
-			return "", fmt.Errorf("failed to get current username: %w", err)
-		}
-		actualUser = cachedUser
-	}
-
-	filename := fmt.Sprintf("%s_repos.json", actualUser)
-	return filepath.Join(cacheDir, filename), nil
-}
-
 func getReadmeCachePath(user, repoName string) (string, error) {
 	cacheDir, err := GetCacheDir()
 	if err != nil {

@@ -29,6 +29,7 @@ var (
 	ProjectsDir    string
 	RefreshCache   bool
 )
+
 var (
 	previewUser string
 	listUser    string
