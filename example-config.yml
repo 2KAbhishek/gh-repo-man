@@ -40,7 +40,7 @@ ui:
     general:
       archived: ' '
       calendar: ' '
-      clock": ' '
+      clock: ' '
       cloning: ' '
       disk: ' '
       done: ' '
