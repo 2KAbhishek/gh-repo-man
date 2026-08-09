@@ -74,6 +74,19 @@ func TestGetRepos(t *testing.T) {
 			t.Errorf("GetRepos() with a user returned %+v, want %+v", repos, expected)
 		}
 	})
+
+	t.Run("refresh flag bypasses cache", func(t *testing.T) {
+		cmd.RefreshCache = true
+		defer func() { cmd.RefreshCache = false }()
+
+		repos, err := cmd.GetRepos("someuser")
+		if err != nil {
+			t.Fatalf("GetRepos() with RefreshCache=true returned error: %v", err)
+		}
+		if len(repos) != 1 || repos[0].Name != "userRepo1" {
+			t.Fatalf("GetRepos() with RefreshCache=true got %+v", repos)
+		}
+	})
 }
 
 func TestValidateUsername(t *testing.T) {

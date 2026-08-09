@@ -26,6 +26,7 @@ var (
 	LanguageFilter string
 	SortBy         string
 	ProjectsDir    string
+	RefreshCache   bool
 )
 var previewUser string
 
@@ -108,6 +109,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&LanguageFilter, "language", "l", "", "Filter by primary language")
 	rootCmd.Flags().StringVarP(&SortBy, "sort", "s", "", "Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)")
 	rootCmd.Flags().StringVarP(&ProjectsDir, "dir", "d", "", "Directory where repositories will be cloned (overrides config)")
+	rootCmd.Flags().BoolVarP(&RefreshCache, "refresh", "r", false, "Force refresh repositories from GitHub, bypassing cache")
 
 	PreviewCmd.Flags().StringVar(&previewUser, "user", "", "The user whose repositories to search for preview")
 	rootCmd.AddCommand(PreviewCmd)

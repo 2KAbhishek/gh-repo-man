@@ -37,20 +37,40 @@ func ValidateUsername(username string) error {
 	return nil
 }
 
-// GetRepos fetches repositories for a user with caching support
+// GetRepos fetches repositories for a user with stale-while-revalidate caching for instant startup
 func GetRepos(user string) ([]Repo, error) {
+	if RefreshCache {
+		return forceFetchRepos(user)
+	}
+
 	reposCacheTTL, err := ParseTTL(config.Performance.Cache.Repos)
 	if err != nil {
 		reposCacheTTL = 24 * time.Hour
 	}
 
 	cachePath, err := getReposCachePath(user)
-	if err == nil && IsCacheValid(cachePath, reposCacheTTL) {
-		if repos, err := LoadReposFromCache(user); err == nil {
-			return repos, nil
+	if err == nil {
+		fresh := IsCacheValid(cachePath, reposCacheTTL)
+		cachedRepos, loadErr := LoadReposFromCache(user)
+		if loadErr == nil && len(cachedRepos) > 0 {
+			if !fresh {
+				// Rehydrate cache in background for instant startup
+				go func(u string) {
+					ctx, cancel := context.WithTimeout(context.Background(), DefaultContextTimeout)
+					defer cancel()
+					if repos, err := GetReposWithContext(ctx, u); err == nil {
+						_ = SaveReposToCache(u, repos)
+					}
+				}(user)
+			}
+			return cachedRepos, nil
 		}
 	}
 
+	return forceFetchRepos(user)
+}
+
+func forceFetchRepos(user string) ([]Repo, error) {
 	if user == "" {
 		fmt.Printf("%s Fetching your repositories from GitHub...\n", GetIcon("info"))
 	} else {
@@ -136,7 +156,7 @@ func GetCurrentUsername() (string, error) {
 	return user.Login, nil
 }
 
-// GetReadme fetches README content for a repository
+// GetReadme fetches README content for a repository with stale-while-revalidate caching
 func GetReadme(repoFullName string) (string, error) {
 	parts := strings.Split(repoFullName, "/")
 	if len(parts) != 2 {
@@ -150,8 +170,19 @@ func GetReadme(repoFullName string) (string, error) {
 	}
 
 	cachePath, err := getReadmeCachePath(user, repoName)
-	if err == nil && IsCacheValid(cachePath, readmeCacheTTL) {
-		if content, err := LoadReadmeFromCache(user, repoName); err == nil {
+	if err == nil {
+		fresh := IsCacheValid(cachePath, readmeCacheTTL)
+		content, loadErr := LoadReadmeFromCache(user, repoName)
+		if loadErr == nil {
+			if !fresh {
+				go func(full, u, r string) {
+					cmd := ExecCommand("gh", "api", fmt.Sprintf("repos/%s/readme", full), "-H", "Accept: application/vnd.github.v3.raw")
+					out, err := cmd.Output()
+					if err == nil {
+						_ = SaveReadmeToCache(u, r, string(out))
+					}
+				}(repoFullName, user, repoName)
+			}
 			return content, nil
 		}
 	}

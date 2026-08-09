@@ -128,7 +128,7 @@ func SaveReposToCache(user string, repos []Repo) error {
 	return nil
 }
 
-// GetCachedCurrentUsername gets the current username with caching
+// GetCachedCurrentUsername gets the current username with caching (fast fallback + background rehydrate)
 func GetCachedCurrentUsername() (string, error) {
 	cacheDir, err := GetCacheDir()
 	if err != nil {
@@ -141,10 +141,18 @@ func GetCachedCurrentUsername() (string, error) {
 		usernameCacheTTL = 90 * 24 * time.Hour
 	}
 
-	if IsCacheValid(usernameCachePath, usernameCacheTTL) {
-		data, err := os.ReadFile(usernameCachePath)
-		if err == nil && len(data) > 0 {
-			return strings.TrimSpace(string(data)), nil
+	data, err := os.ReadFile(usernameCachePath)
+	if err == nil && len(data) > 0 {
+		cachedUsername := strings.TrimSpace(string(data))
+		if cachedUsername != "" {
+			if !IsCacheValid(usernameCachePath, usernameCacheTTL) {
+				go func() {
+					if freshUser, err := GetCurrentUsername(); err == nil && freshUser != "" {
+						_ = os.WriteFile(usernameCachePath, []byte(freshUser), 0o600)
+					}
+				}()
+			}
+			return cachedUsername, nil
 		}
 	}
 
