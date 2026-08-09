@@ -98,6 +98,10 @@ func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
 	}
 
 	cmd := ExecCommand("gh", buildRepoListArgs(user)...)
+	if len(cmd.Env) == 0 {
+		cmd.Env = os.Environ()
+	}
+	cmd.Env = append(cmd.Env, "GH_PROMPT_DISABLED=1")
 
 	type result struct {
 		output []byte
@@ -138,6 +142,10 @@ func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
 // GetCurrentUsername fetches the current authenticated user's username
 func GetCurrentUsername() (string, error) {
 	cmd := ExecCommand("gh", "api", "user")
+	if len(cmd.Env) == 0 {
+		cmd.Env = os.Environ()
+	}
+	cmd.Env = append(cmd.Env, "GH_PROMPT_DISABLED=1")
 	out, err := cmd.Output()
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {

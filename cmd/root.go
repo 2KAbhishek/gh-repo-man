@@ -167,10 +167,15 @@ func handleRepoSelection(selectedNames []string, sortedRepos []Repo) error {
 
 func buildPreviewCommand(user string) string {
 	cmdInvocation := GetCommandInvocation()
-	if user != "" {
-		return fmt.Sprintf("%s preview {} --user %s", cmdInvocation, user)
+	var parts []string
+	parts = append(parts, cmdInvocation, "preview", "{}")
+	if configPath != "" && configPath != DefaultConfigPath {
+		parts = append(parts, "--config", configPath)
 	}
-	return fmt.Sprintf("%s preview {}", cmdInvocation)
+	if user != "" {
+		parts = append(parts, "--user", user)
+	}
+	return strings.Join(parts, " ")
 }
 
 func runFzfSelection(repoNames []string, user string) ([]string, error) {

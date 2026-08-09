@@ -37,7 +37,7 @@ func OpenWithCommand(repos []Repo, cmdConfig CommandConfig) error {
 		}
 		repoPath := filepath.Join(targetDir, repo.Name)
 
-		args := append(cmdConfig.Args, repoPath)
+		args := append(append([]string(nil), cmdConfig.Args...), repoPath)
 		cmd := ExecCommand(command, args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
