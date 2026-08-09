@@ -388,3 +388,13 @@ func TestGetReadme(t *testing.T) {
 		}
 	})
 }
+
+func TestGetUserContext(t *testing.T) {
+	if ctx := cmd.GetUserContext(""); ctx != "current user" {
+		t.Errorf("GetUserContext(\"\") = %q, want 'current user'", ctx)
+	}
+
+	if ctx := cmd.GetUserContext("testuser"); ctx != "user 'testuser'" {
+		t.Errorf("GetUserContext(\"testuser\") = %q, want \"user 'testuser'\"", ctx)
+	}
+}

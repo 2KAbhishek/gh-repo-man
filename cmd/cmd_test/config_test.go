@@ -180,4 +180,49 @@ func TestConfigValidation(t *testing.T) {
 			t.Errorf("Expected fallback ProjectsDir to be ~/Projects, got %s", config.Repos.ProjectsDir)
 		}
 	})
+
+	t.Run("config with invalid cache TTL repos", func(t *testing.T) {
+		configPath := filepath.Join(env.tmpDir, "invalid-ttl-repos-config.yml")
+		configContent := `performance:
+  cache:
+    repos: "invalid"`
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+			t.Fatalf("Failed to write config file: %v", err)
+		}
+
+		config := cmd.LoadConfig(configPath)
+		if config.Performance.Cache.Repos != "24h" {
+			t.Errorf("Expected fallback Repos cache TTL to be 24h, got %s", config.Performance.Cache.Repos)
+		}
+	})
+
+	t.Run("config with invalid cache TTL readme", func(t *testing.T) {
+		configPath := filepath.Join(env.tmpDir, "invalid-ttl-readme-config.yml")
+		configContent := `performance:
+  cache:
+    readme: "invalid"`
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+			t.Fatalf("Failed to write config file: %v", err)
+		}
+
+		config := cmd.LoadConfig(configPath)
+		if config.Performance.Cache.Readme != "24h" {
+			t.Errorf("Expected fallback Readme cache TTL to be 24h, got %s", config.Performance.Cache.Readme)
+		}
+	})
+
+	t.Run("config with invalid cache TTL username", func(t *testing.T) {
+		configPath := filepath.Join(env.tmpDir, "invalid-ttl-username-config.yml")
+		configContent := `performance:
+  cache:
+    username: "invalid"`
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+			t.Fatalf("Failed to write config file: %v", err)
+		}
+
+		config := cmd.LoadConfig(configPath)
+		if config.Performance.Cache.Username != "90d" {
+			t.Errorf("Expected fallback Username cache TTL to be 90d, got %s", config.Performance.Cache.Username)
+		}
+	})
 }

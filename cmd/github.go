@@ -125,7 +125,7 @@ func GetReposWithContext(ctx context.Context, user string) ([]Repo, error) {
 	case res := <-resultChan:
 		if res.err != nil {
 			if exitError, ok := res.err.(*exec.ExitError); ok {
-				return nil, fmt.Errorf("failed to fetch repositories for %s: %s", getUserContext(user), string(exitError.Stderr))
+				return nil, fmt.Errorf("failed to fetch repositories for %s: %s", GetUserContext(user), string(exitError.Stderr))
 			}
 			return nil, fmt.Errorf("failed to execute gh repo list command: %w", res.err)
 		}
@@ -232,8 +232,8 @@ func buildRepoListArgs(user string) []string {
 	return args
 }
 
-// getUserContext returns user context string for error messages
-func getUserContext(user string) string {
+// GetUserContext returns user context string for error messages
+func GetUserContext(user string) string {
 	if user != "" {
 		return fmt.Sprintf("user '%s'", user)
 	}
