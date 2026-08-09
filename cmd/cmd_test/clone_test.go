@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -239,5 +240,23 @@ func TestConvertToSSHURL(t *testing.T) {
 				t.Errorf("ConvertToSSHURL(%q) = %q, want %q", tt.httpsURL, result, tt.expected)
 			}
 		})
+	}
+}
+
+func TestBuildGitCloneArgs(t *testing.T) {
+	cmd.SetConfig(cmd.Config{
+		Integrations: cmd.IntegrationsConfig{
+			Git: cmd.GitConfig{
+				CloneDepth: 1,
+				CloneArgs:  []string{"--single-branch"},
+			},
+		},
+	})
+
+	args := cmd.BuildGitCloneArgs("git@github.com:user/repo.git", "/target/path")
+	expected := []string{"clone", "--depth", "1", "--single-branch", "git@github.com:user/repo.git", "/target/path"}
+
+	if !reflect.DeepEqual(args, expected) {
+		t.Errorf("BuildGitCloneArgs() = %v, want %v", args, expected)
 	}
 }

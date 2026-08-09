@@ -116,7 +116,7 @@ func prepareTargetDirectory(repo Repo, index, totalRepos int) (string, error) {
 // executeGitClone executes the actual git clone command
 func executeGitClone(ctx context.Context, repo Repo, targetPath string, index, totalRepos int) error {
 	sshURL := ConvertToSSHURL(repo.HTMLURL)
-	args := buildGitCloneArgs(sshURL, targetPath)
+	args := BuildGitCloneArgs(sshURL, targetPath)
 	cmd := ExecCommand("git", args...)
 
 	printCloneStatus(fmt.Sprintf("[%d/%d] %s Cloning %s to %s\n", index+1, totalRepos, GetIcon("cloning"), repo.Name, targetPath))
@@ -149,8 +149,8 @@ func executeGitClone(ctx context.Context, repo Repo, targetPath string, index, t
 	return nil
 }
 
-// buildGitCloneArgs builds git clone command arguments
-func buildGitCloneArgs(sshURL, targetPath string) []string {
+// BuildGitCloneArgs builds git clone command arguments
+func BuildGitCloneArgs(sshURL, targetPath string) []string {
 	args := []string{"clone"}
 
 	if config.Integrations.Git.CloneDepth > 0 {
