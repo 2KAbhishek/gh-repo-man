@@ -161,3 +161,45 @@ func TestCachePerformance(t *testing.T) {
 		t.Error("Cache file was not created")
 	}
 }
+
+func TestLoadReposFromCorruptCache(t *testing.T) {
+	env := setupTempHome(t)
+	defer env.cleanup()
+
+	cacheDir, err := cmd.GetCacheDir()
+	if err != nil {
+		t.Fatalf("GetCacheDir() failed: %v", err)
+	}
+
+	corruptFile := filepath.Join(cacheDir, "testuser_repos.json")
+	if err := os.WriteFile(corruptFile, []byte("{invalid-json}"), 0o600); err != nil {
+		t.Fatalf("Failed to write corrupt cache file: %v", err)
+	}
+
+	_, err = cmd.LoadReposFromCache("testuser")
+	if err == nil {
+		t.Error("LoadReposFromCache() should fail when cache contains corrupt JSON")
+	}
+}
+
+func TestGetCachedCurrentUsername(t *testing.T) {
+	ts := setupMockTest(t)
+	defer ts.cleanup()
+
+	username, err := cmd.GetCachedCurrentUsername()
+	if err != nil {
+		t.Fatalf("GetCachedCurrentUsername() returned error: %v", err)
+	}
+	if username != "testuser" {
+		t.Errorf("GetCachedCurrentUsername() = %q, want 'testuser'", username)
+	}
+
+	// Calling again should read from fast cache path
+	cachedUsername, err := cmd.GetCachedCurrentUsername()
+	if err != nil {
+		t.Fatalf("GetCachedCurrentUsername() second call returned error: %v", err)
+	}
+	if cachedUsername != "testuser" {
+		t.Errorf("GetCachedCurrentUsername() second call = %q, want 'testuser'", cachedUsername)
+	}
+}
