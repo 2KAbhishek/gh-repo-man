@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -28,7 +29,10 @@ var (
 	ProjectsDir    string
 	RefreshCache   bool
 )
-var previewUser string
+var (
+	previewUser string
+	listUser    string
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "gh-repo-man",
@@ -76,7 +80,42 @@ var PreviewCmd = &cobra.Command{
 	},
 }
 
+var ListCmd = &cobra.Command{
+	Use:    "list",
+	Short:  "List repository names (used by fzf reload)",
+	Hidden: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		targetUser := listUser
+		if targetUser == "" {
+			targetUser = User
+		}
+
+		oldRefresh := RefreshCache
+		RefreshCache = true
+		defer func() { RefreshCache = oldRefresh }()
+
+		sortedRepos, err := processRepositories(targetUser)
+		if err != nil {
+			return err
+		}
+
+		for _, name := range extractRepoNames(sortedRepos) {
+			fmt.Println(name)
+		}
+		return nil
+	},
+}
+
 func GetCommandInvocation() string {
+	if exe, err := os.Executable(); err == nil && exe != "" {
+		base := filepath.Base(exe)
+		if !strings.HasSuffix(base, ".test") && !strings.HasPrefix(base, "___") {
+			if strings.Contains(exe, " ") {
+				return `"` + exe + `"`
+			}
+			return exe
+		}
+	}
 	if _, err := exec.LookPath("gh-repo-man"); err == nil {
 		return "gh-repo-man"
 	}
@@ -113,6 +152,13 @@ func init() {
 
 	PreviewCmd.Flags().StringVar(&previewUser, "user", "", "The user whose repositories to search for preview")
 	rootCmd.AddCommand(PreviewCmd)
+
+	ListCmd.Flags().StringVar(&listUser, "user", "", "The user whose repositories to list")
+	ListCmd.Flags().StringVarP(&configPath, "config", "c", DefaultConfigPath, "Path to configuration file.")
+	ListCmd.Flags().StringVarP(&RepoType, "type", "t", "", "Filter by repository type")
+	ListCmd.Flags().StringVarP(&LanguageFilter, "language", "l", "", "Filter by primary language")
+	ListCmd.Flags().StringVarP(&SortBy, "sort", "s", "", "Sort repositories by")
+	rootCmd.AddCommand(ListCmd)
 }
 
 func runMain() error {
@@ -137,7 +183,12 @@ func runMain() error {
 		return err
 	}
 
-	return handleRepoSelection(selectedNames, sortedRepos)
+	finalRepos, err := processRepositories(User)
+	if err != nil {
+		finalRepos = sortedRepos
+	}
+
+	return handleRepoSelection(selectedNames, finalRepos)
 }
 
 func handleRepoSelection(selectedNames []string, sortedRepos []Repo) error {
@@ -178,9 +229,37 @@ func buildPreviewCommand(user string) string {
 	return strings.Join(parts, " ")
 }
 
+func BuildReloadCommand(user string) string {
+	cmdInvocation := GetCommandInvocation()
+	var parts []string
+	parts = append(parts, cmdInvocation, "list")
+	if configPath != "" && configPath != DefaultConfigPath {
+		parts = append(parts, "--config", configPath)
+	}
+	if user != "" {
+		parts = append(parts, "--user", user)
+	}
+	if RepoType != "" {
+		parts = append(parts, "--type", RepoType)
+	}
+	if LanguageFilter != "" {
+		parts = append(parts, "--language", LanguageFilter)
+	}
+	if SortBy != "" {
+		parts = append(parts, "--sort", SortBy)
+	}
+	return strings.Join(parts, " ")
+}
+
 func runFzfSelection(repoNames []string, user string) ([]string, error) {
 	previewCmd := buildPreviewCommand(user)
-	fzfArgs := []string{"--multi", "--preview", previewCmd}
+	reloadCmd := BuildReloadCommand(user)
+	fzfArgs := []string{
+		"--multi",
+		"--preview", previewCmd,
+		"--bind", "ctrl-r:reload(" + reloadCmd + ")",
+		"--header", "Press Ctrl+r to refresh repositories",
+	}
 
 	fzfCmd := exec.Command("fzf", fzfArgs...)
 	fzfCmd.Stdin = strings.NewReader(strings.Join(repoNames, "\n"))

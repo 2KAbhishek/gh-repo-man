@@ -93,6 +93,7 @@ gh-repo-man [flags]
   -d, --dir string        Directory where repositories will be cloned (overrides config)
   -h, --help              Help for repo-man
   -l, --language string   Filter by primary language
+  -r, --refresh           Force refresh repositories from GitHub, bypassing cache
   -s, --sort string       Sort repositories by (created, forks, issues, language, name, pushed, size, stars, updated)
   -t, --type string       Filter by repository type (archived, forked, private, template)
   -u, --user string       Browse repositories for a specific user
@@ -109,6 +110,9 @@ gh-repo-man
 
 # Browse another user's repositories
 gh repo-man --user torvalds
+
+# Force refresh repositories from GitHub, bypassing cache
+gh repo-man --refresh
 
 # Filter by language and sort by stars
 gh repo-man --language go --sort stars
@@ -130,6 +134,7 @@ gh repo-man --dir ~/workspace/projects
 
 - Use arrow keys to navigate through repositories
 - Press `Tab` or `Shift+Tab` to select multiple repositories
+- Press `Ctrl+r` to refresh the repository list live from GitHub
 - Press `Enter` to clone selected repositories
 - View repository details in the preview pane
 

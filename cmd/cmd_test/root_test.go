@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/2KAbhishek/gh-repo-man/cmd"
@@ -209,4 +210,43 @@ func TestFindRepoByName(t *testing.T) {
 			t.Errorf("FindRepoByName() expected nil, got %v", found)
 		}
 	})
+}
+
+func TestListCmd(t *testing.T) {
+	ts := setupMockTest(t)
+	defer ts.cleanup()
+
+	cmd.ListCmd.SetArgs([]string{"--user", "someuser"})
+	err := cmd.ListCmd.Execute()
+	if err != nil {
+		t.Fatalf("ListCmd.Execute() returned error: %v", err)
+	}
+}
+
+func TestBuildReloadCommand(t *testing.T) {
+	cmd.RepoType = "archived"
+	cmd.LanguageFilter = "Go"
+	cmd.SortBy = "stars"
+	defer func() {
+		cmd.RepoType = ""
+		cmd.LanguageFilter = ""
+		cmd.SortBy = ""
+	}()
+
+	reloadCmd := cmd.BuildReloadCommand("myuser")
+	if !strings.Contains(reloadCmd, "list") {
+		t.Errorf("expected reload command to contain 'list', got: %s", reloadCmd)
+	}
+	if !strings.Contains(reloadCmd, "--user myuser") {
+		t.Errorf("expected reload command to contain user flag, got: %s", reloadCmd)
+	}
+	if !strings.Contains(reloadCmd, "--type archived") {
+		t.Errorf("expected reload command to contain type flag, got: %s", reloadCmd)
+	}
+	if !strings.Contains(reloadCmd, "--language Go") {
+		t.Errorf("expected reload command to contain language flag, got: %s", reloadCmd)
+	}
+	if !strings.Contains(reloadCmd, "--sort stars") {
+		t.Errorf("expected reload command to contain sort flag, got: %s", reloadCmd)
+	}
 }

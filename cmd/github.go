@@ -43,40 +43,23 @@ func GetRepos(user string) ([]Repo, error) {
 		return forceFetchRepos(user)
 	}
 
-	reposCacheTTL, err := ParseTTL(config.Performance.Cache.Repos)
-	if err != nil {
-		reposCacheTTL = 24 * time.Hour
-	}
-
-	cachePath, err := getReposCachePath(user)
-	if err == nil {
-		fresh := IsCacheValid(cachePath, reposCacheTTL)
-		cachedRepos, loadErr := LoadReposFromCache(user)
-		if loadErr == nil && len(cachedRepos) > 0 {
-			if !fresh {
-				// Rehydrate cache in background for instant startup
-				go func(u string) {
-					ctx, cancel := context.WithTimeout(context.Background(), DefaultContextTimeout)
-					defer cancel()
-					if repos, err := GetReposWithContext(ctx, u); err == nil {
-						_ = SaveReposToCache(u, repos)
-					}
-				}(user)
+	cachedRepos, loadErr := LoadReposFromCache(user)
+	if loadErr == nil && len(cachedRepos) > 0 {
+		// Always rehydrate cache in background on startup for instant UI responsiveness
+		go func(u string) {
+			ctx, cancel := context.WithTimeout(context.Background(), DefaultContextTimeout)
+			defer cancel()
+			if repos, err := GetReposWithContext(ctx, u); err == nil {
+				_ = SaveReposToCache(u, repos)
 			}
-			return cachedRepos, nil
-		}
+		}(user)
+		return cachedRepos, nil
 	}
 
 	return forceFetchRepos(user)
 }
 
 func forceFetchRepos(user string) ([]Repo, error) {
-	if user == "" {
-		fmt.Printf("%s Fetching your repositories from GitHub...\n", GetIcon("info"))
-	} else {
-		fmt.Printf("%s Fetching repositories for %s from GitHub...\n", GetIcon("info"), user)
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultContextTimeout)
 	defer cancel()
 	repos, err := GetReposWithContext(ctx, user)
