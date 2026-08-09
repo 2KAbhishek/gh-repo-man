@@ -189,3 +189,24 @@ func TestProjectsDirFlagOverride(t *testing.T) {
 		})
 	}
 }
+
+func TestFindRepoByName(t *testing.T) {
+	repos := []cmd.Repo{
+		{Name: "repo1", HTMLURL: "https://github.com/user/repo1"},
+		{Name: "repo2", HTMLURL: "https://github.com/user/repo2"},
+	}
+
+	t.Run("found", func(t *testing.T) {
+		found := cmd.FindRepoByName(repos, "repo2")
+		if found == nil || found.Name != "repo2" {
+			t.Errorf("FindRepoByName() expected repo2, got %v", found)
+		}
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		found := cmd.FindRepoByName(repos, "nonexistent")
+		if found != nil {
+			t.Errorf("FindRepoByName() expected nil, got %v", found)
+		}
+	})
+}

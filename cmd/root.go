@@ -66,7 +66,7 @@ var PreviewCmd = &cobra.Command{
 			return
 		}
 
-		targetRepo := findRepoByName(repos, repoName)
+		targetRepo := FindRepoByName(repos, repoName)
 		if targetRepo == nil {
 			fmt.Printf("Repository %s not found.\n", repoName)
 			return
@@ -223,7 +223,7 @@ func extractRepoNames(repos []Repo) []string {
 	return repoNames
 }
 
-func findRepoByName(repos []Repo, name string) *Repo {
+func FindRepoByName(repos []Repo, name string) *Repo {
 	for i := range repos {
 		if repos[i].Name == name {
 			return &repos[i]
