@@ -119,6 +119,11 @@ func runMain() error {
 		return err
 	}
 
+	if len(sortedRepos) == 0 {
+		fmt.Println("No repositories found matching the criteria.")
+		return nil
+	}
+
 	repoNames := extractRepoNames(sortedRepos)
 
 	selectedNames, err := runFzfSelection(repoNames, User)
@@ -212,9 +217,9 @@ func extractRepoNames(repos []Repo) []string {
 }
 
 func findRepoByName(repos []Repo, name string) *Repo {
-	for _, repo := range repos {
-		if repo.Name == name {
-			return &repo
+	for i := range repos {
+		if repos[i].Name == name {
+			return &repos[i]
 		}
 	}
 	return nil

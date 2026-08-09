@@ -85,6 +85,14 @@ func cloneSingleRepo(ctx context.Context, index int, repo Repo, totalRepos int, 
 	errChan <- err
 }
 
+var printMu sync.Mutex
+
+func printCloneStatus(msg string) {
+	printMu.Lock()
+	defer printMu.Unlock()
+	fmt.Print(msg)
+}
+
 // prepareTargetDirectory prepares the target directory for cloning
 func prepareTargetDirectory(repo Repo, index, totalRepos int) (string, error) {
 	targetDir, err := GetProjectsDirForUser(repo.Owner.Login)
@@ -98,7 +106,7 @@ func prepareTargetDirectory(repo Repo, index, totalRepos int) (string, error) {
 
 	targetPath := filepath.Join(targetDir, repo.Name)
 	if _, err := os.Stat(targetPath); err == nil {
-		fmt.Printf("[%d/%d] %s %s already exists in %s, skipping clone\n", index+1, totalRepos, GetIcon("info"), repo.Name, targetPath)
+		printCloneStatus(fmt.Sprintf("[%d/%d] %s %s already exists in %s, skipping clone\n", index+1, totalRepos, GetIcon("info"), repo.Name, targetPath))
 		return "", nil
 	}
 
@@ -111,17 +119,23 @@ func executeGitClone(ctx context.Context, repo Repo, targetPath string, index, t
 	args := buildGitCloneArgs(sshURL, targetPath)
 	cmd := ExecCommand("git", args...)
 
-	fmt.Printf("[%d/%d] %s Cloning %s to %s\n", index+1, totalRepos, GetIcon("cloning"), repo.Name, targetPath)
+	printCloneStatus(fmt.Sprintf("[%d/%d] %s Cloning %s to %s\n", index+1, totalRepos, GetIcon("cloning"), repo.Name, targetPath))
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start clone for %s: %w", repo.Name, err)
 	}
 
+	done := make(chan struct{})
+	defer close(done)
+
 	go func() {
-		<-ctx.Done()
-		if cmd.Process != nil {
-			if killErr := cmd.Process.Kill(); killErr != nil {
-				fmt.Fprintf(os.Stderr, "Warning: Failed to kill process: %v\n", killErr)
+		select {
+		case <-done:
+		case <-ctx.Done():
+			if cmd.Process != nil {
+				if killErr := cmd.Process.Kill(); killErr != nil {
+					fmt.Fprintf(os.Stderr, "Warning: Failed to kill process: %v\n", killErr)
+				}
 			}
 		}
 	}()
@@ -131,7 +145,7 @@ func executeGitClone(ctx context.Context, repo Repo, targetPath string, index, t
 		return handleCloneError(ctx, err, repo.Name)
 	}
 
-	fmt.Printf("[%d/%d] %s Successfully cloned %s to %s\n", index+1, totalRepos, GetIcon("success"), repo.Name, targetPath)
+	printCloneStatus(fmt.Sprintf("[%d/%d] %s Successfully cloned %s to %s\n", index+1, totalRepos, GetIcon("success"), repo.Name, targetPath))
 	return nil
 }
 
