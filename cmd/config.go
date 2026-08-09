@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -151,6 +152,17 @@ func getDefaultConfig() Config {
 	}
 }
 
+func normalizeIconMap(m map[string]string) map[string]string {
+	if m == nil {
+		return nil
+	}
+	normalized := make(map[string]string, len(m))
+	for k, v := range m {
+		normalized[strings.ToLower(k)] = v
+	}
+	return normalized
+}
+
 // applyDefaults fills in empty fields with default values
 func applyDefaults(cfg Config) Config {
 	defaults := getDefaultConfig()
@@ -176,6 +188,11 @@ func applyDefaults(cfg Config) Config {
 
 	if cfg.UI.Icons.General == nil {
 		cfg.UI.Icons = defaults.UI.Icons
+	} else {
+		cfg.UI.Icons.General = normalizeIconMap(cfg.UI.Icons.General)
+	}
+	if cfg.UI.Icons.Languages != nil {
+		cfg.UI.Icons.Languages = normalizeIconMap(cfg.UI.Icons.Languages)
 	}
 
 	return cfg
@@ -183,6 +200,13 @@ func applyDefaults(cfg Config) Config {
 
 // expandPath expands ~ to the user's home directory
 func expandPath(path string) (string, error) {
+	if path == "~" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get user home directory: %w", err)
+		}
+		return home, nil
+	}
 	if len(path) > 1 && path[:2] == "~/" {
 		home, err := os.UserHomeDir()
 		if err != nil {
