@@ -1,7 +1,9 @@
 package cmd_test
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"os"
 	"os/exec"
 	"reflect"
@@ -396,5 +398,35 @@ func TestGetUserContext(t *testing.T) {
 
 	if ctx := cmd.GetUserContext("testuser"); ctx != "user 'testuser'" {
 		t.Errorf("GetUserContext(\"testuser\") = %q, want \"user 'testuser'\"", ctx)
+	}
+}
+
+func TestFetchReposLoadingMessage(t *testing.T) {
+	ts := setupMockTest(t)
+	defer ts.cleanup()
+
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldStderr := os.Stderr
+	os.Stderr = w
+
+	_, err = cmd.GetRepos("")
+
+	_ = w.Close()
+	os.Stderr = oldStderr
+
+	if err != nil {
+		t.Fatalf("GetRepos failed: %v", err)
+	}
+
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, r)
+	_ = r.Close()
+
+	expected := "Loading repositories..."
+	if !strings.Contains(buf.String(), expected) {
+		t.Errorf("expected stderr to contain %q, got: %q", expected, buf.String())
 	}
 }

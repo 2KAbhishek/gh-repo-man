@@ -60,6 +60,8 @@ func GetRepos(user string) ([]Repo, error) {
 }
 
 func forceFetchRepos(user string) ([]Repo, error) {
+	fmt.Fprintf(os.Stderr, "%s Loading repositories...\n", GetIcon("info"))
+
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultContextTimeout)
 	defer cancel()
 	repos, err := GetReposWithContext(ctx, user)

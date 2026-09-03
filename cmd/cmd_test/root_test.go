@@ -216,8 +216,8 @@ func TestListCmd(t *testing.T) {
 	ts := setupMockTest(t)
 	defer ts.cleanup()
 
-	cmd.ListCmd.SetArgs([]string{"--user", "someuser"})
-	err := cmd.ListCmd.Execute()
+	cmd.ListCmd.Root().SetArgs([]string{"list", "--user", "someuser"})
+	err := cmd.ListCmd.Root().Execute()
 	if err != nil {
 		t.Fatalf("ListCmd.Execute() returned error: %v", err)
 	}
